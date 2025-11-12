@@ -819,9 +819,8 @@ const SalesStatisticOne = () => {
         return {
           id: ival._id || `unknown_${ival.id}`, // Fallback ID if missing
           name:
-            `${personalDetails.firstName || ""} ${
-              personalDetails.lastName || ""
-            }`.trim() || "Unnamed Member",
+            `${personalDetails.firstName || ""} ${personalDetails.lastName || ""
+              }`.trim() || "Unnamed Member",
         };
       });
       console.log(data, "data");
@@ -1825,13 +1824,13 @@ const SalesStatisticOne = () => {
                           <span className="text-xs text-secondary-light fw-medium">
                             {event.date
                               ? new Date(event.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
                               : "Date not specified"}
                           </span>
                         </div>
@@ -1840,11 +1839,10 @@ const SalesStatisticOne = () => {
                             ₹{event.amount || "1000"}
                           </h6>
                           <button
-                            className={`text-xs fw-medium px-3 border-0 ${
-                              event.paid
+                            className={`text-xs fw-medium px-3 border-0 ${event.paid
                                 ? "text-success-600 bg-success-100"
                                 : "text-danger-600 bg-danger-100"
-                            }`}
+                              }`}
                             style={{
                               padding: "2px 7px",
                               borderRadius: "4px",
@@ -1852,7 +1850,7 @@ const SalesStatisticOne = () => {
                             }}
                             data-bs-toggle="modal"
                             data-bs-target="#paymentDetails"
-                            // onClick={() => handlePayment(event.id)}
+                          // onClick={() => handlePayment(event.id)}
                           >
                             {event.paid ? "Paid" : "Pay Now"}
                           </button>
@@ -1996,32 +1994,37 @@ const SalesStatisticOne = () => {
                         <strong>Topic: </strong>
                         {event.topic || "No topic"}
                       </p>
+                      {/* ✅ Added Hotel Name */}
+                      <p className="m-0">
+                        <strong>Hotel Name: </strong>
+                        {event.hotelName || "No hotel name"}
+                      </p>
                       <p className="m-0">
                         <strong>Start: </strong>
                         {event.startDate
                           ? new Date(event.startDate).toLocaleString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
                           : "Date not set"}
                       </p>
                       <p className="m-0">
                         <strong>End: </strong>
                         {event.endDate
                           ? new Date(event.endDate).toLocaleString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
                           : "Date not set"}
                       </p>
                     </div>
@@ -2379,7 +2382,7 @@ const SalesStatisticOne = () => {
                         src={
                           selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                          selectedMember?.personalDetails?.profileImage?.docName
+                            selectedMember?.personalDetails?.profileImage?.docName
                             ? `${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`
                             : "assets/images/avatar/avatar.jpg"
                         }
@@ -2673,9 +2676,8 @@ const SalesStatisticOne = () => {
                   {/* Member List */}
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {memberList.map((member, idx) => {
-                      const initials = `${
-                        member.personalDetails?.firstName?.charAt(0) || ""
-                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
+                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = member.personalDetails?.profileImage
                         ?.docPath
                         ? `${IMAGE_BASE_URL}/${member.personalDetails.profileImage.docPath}/${member.personalDetails.profileImage.docName}`
@@ -3130,9 +3132,8 @@ const SalesStatisticOne = () => {
       </div>
       {/* Testimonial Given Modal */}
       <div
-        className={`modal fade ${
-          showTestimonialGivenPopup ? "show d-block" : ""
-        }`}
+        className={`modal fade ${showTestimonialGivenPopup ? "show d-block" : ""
+          }`}
         tabIndex="-1"
       >
         <div
@@ -3309,9 +3310,8 @@ const SalesStatisticOne = () => {
       </div>
       {/* Testimonial received Modal */}
       <div
-        className={`modal ${
-          showTestimonialReceivedPopup ? "d-block" : "d-none"
-        }`}
+        className={`modal ${showTestimonialReceivedPopup ? "d-block" : "d-none"
+          }`}
         tabIndex="-1"
       >
         <div
@@ -3718,7 +3718,7 @@ const SalesStatisticOne = () => {
                       <button
                         className="btn btn-primary grip"
                         style={{ minWidth: "60px" }}
-                        // onClick={() => handleApplyDateFilter(visitorsDatas)}
+                      // onClick={() => handleApplyDateFilter(visitorsDatas)}
                       >
                         Go
                       </button>
@@ -4036,9 +4036,8 @@ const SalesStatisticOne = () => {
                     <div>
                       <strong>Ruuning Member: </strong>
                       {selectedMember?.personalDetails
-                        ? `${selectedMember.personalDetails.firstName || ""} ${
-                            selectedMember.personalDetails.lastName || ""
-                          }`
+                        ? `${selectedMember.personalDetails.firstName || ""} ${selectedMember.personalDetails.lastName || ""
+                        }`
                         : "N/A"}{" "}
                       | Chapter:{" "}
                       {selectedMember?.chapterInfo?.chapterId?.chapterName ||
@@ -4081,37 +4080,33 @@ const SalesStatisticOne = () => {
                             const formatDate = (date) =>
                               date
                                 ? new Date(date).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                  })
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "2-digit",
+                                })
                                 : "N/A";
 
                             const toMemberName = item.toMember?.personalDetails
-                              ? `${
-                                  item.toMember.personalDetails.firstName || ""
-                                } ${
-                                  item.toMember.personalDetails.lastName || ""
-                                }`
+                              ? `${item.toMember.personalDetails.firstName || ""
+                              } ${item.toMember.personalDetails.lastName || ""
+                              }`
                               : "N/A";
 
                             const fromMemberName = item.fromMember
                               ?.personalDetails
-                              ? `${
-                                  item.fromMember.personalDetails.firstName ||
-                                  ""
-                                } ${
-                                  item.fromMember.personalDetails.lastName || ""
-                                }`
+                              ? `${item.fromMember.personalDetails.firstName ||
+                              ""
+                              } ${item.fromMember.personalDetails.lastName || ""
+                              }`
                               : "N/A";
 
                             const meetingLocation =
                               item.whereDidYouMeet === "commonlocation"
                                 ? "Common Location"
                                 : item.whereDidYouMeet
-                                ? item.whereDidYouMeet.charAt(0).toUpperCase() +
+                                  ? item.whereDidYouMeet.charAt(0).toUpperCase() +
                                   item.whereDidYouMeet.slice(1)
-                                : "N/A";
+                                  : "N/A";
 
                             return (
                               <tr key={item._id || Math.random()}>
@@ -4121,7 +4116,7 @@ const SalesStatisticOne = () => {
                                 <td>{meetingLocation}</td>
                                 <td>
                                   {item.images?.[0]?.docPath &&
-                                  item.images?.[0]?.docName ? (
+                                    item.images?.[0]?.docName ? (
                                     <img
                                       style={{ width: "50px" }}
                                       src={`${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`}
@@ -4197,8 +4192,8 @@ const SalesStatisticOne = () => {
                         <div className="text-center">
                           {selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                          selectedMember?.personalDetails?.profileImage
-                            ?.docName ? (
+                            selectedMember?.personalDetails?.profileImage
+                              ?.docName ? (
                             <img
                               src={`${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`}
                               alt="avatar"
@@ -4284,31 +4279,26 @@ const SalesStatisticOne = () => {
                           <p className="mb-2" style={{ fontSize: "13px" }}>
                             <strong>Address:</strong>{" "}
                             {`
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.addressLine1 || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.addressLine2 || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.city || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.postalCode || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.state || ""
-                                                        }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.addressLine1 || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.addressLine2 || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.city || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.postalCode || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.state || ""
+                              }
                                                     `
                               .replace(/\s+/g, " ")
                               .trim() || "N/A"}
@@ -4367,9 +4357,8 @@ const SalesStatisticOne = () => {
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {globalMembers.map((member, idx) => {
                       // Extract the first letter of first and last name for avatar fallback
-                      const initials = `${
-                        member.personalDetails?.firstName?.charAt(0) || ""
-                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
+                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = `${IMAGE_BASE_URL}/${member.personalDetails?.profileImage?.docPath}/${member.personalDetails?.profileImage?.docName}`;
 
                       return (
@@ -5989,18 +5978,15 @@ const SalesStatisticOne = () => {
                           // const toMemberName = `${item.toMember.personalDetails.firstName} ${item.toMember.personalDetails.lastName}`;
                           // const fromMemberName = `${item.fromMember.personalDetails.firstName} ${item.fromMember.personalDetails.lastName}`;
                           const toMemberName = item.toMember?.personalDetails
-                            ? `${
-                                item.toMember.personalDetails.firstName || ""
-                              } ${item.toMember.personalDetails.lastName || ""}`
+                            ? `${item.toMember.personalDetails.firstName || ""
+                            } ${item.toMember.personalDetails.lastName || ""}`
                             : "N/A";
 
                           const fromMemberName = item.fromMember
                             ?.personalDetails
-                            ? `${
-                                item.fromMember.personalDetails.firstName || ""
-                              } ${
-                                item.fromMember.personalDetails.lastName || ""
-                              }`
+                            ? `${item.fromMember.personalDetails.firstName || ""
+                            } ${item.fromMember.personalDetails.lastName || ""
+                            }`
                             : "N/A";
 
                           // Format meeting location
@@ -6008,7 +5994,7 @@ const SalesStatisticOne = () => {
                             item.whereDidYouMeet === "commonlocation"
                               ? "Common Location"
                               : item.whereDidYouMeet.charAt(0).toUpperCase() +
-                                item.whereDidYouMeet.slice(1);
+                              item.whereDidYouMeet.slice(1);
 
                           return (
                             <tr key={item._id} className="text-xs">
@@ -6025,7 +6011,7 @@ const SalesStatisticOne = () => {
                                   style={{ width: "50px" }}
                                   src={
                                     item.images?.[0]?.docPath &&
-                                    item.images?.[0]?.docName
+                                      item.images?.[0]?.docName
                                       ? `${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`
                                       : ""
                                   }
@@ -6686,16 +6672,12 @@ const SalesStatisticOne = () => {
                             .replace(/\//g, "/");
 
                           // Get member full names with optional chaining
-                          const toMemberName = `${
-                            item.toMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.toMember?.personalDetails?.lastName || ""
-                          }`.trim();
-                          const fromMemberName = `${
-                            item.fromMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.fromMember?.personalDetails?.lastName || ""
-                          }`.trim();
+                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
+                            } ${item.toMember?.personalDetails?.lastName || ""
+                            }`.trim();
+                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
+                            } ${item.fromMember?.personalDetails?.lastName || ""
+                            }`.trim();
 
                           // Safely access referral details with fallbacks
                           const referralDetail = item.referalDetail || {};
@@ -6846,11 +6828,10 @@ const SalesStatisticOne = () => {
                             <td>₹{event.amount || "1000"}</td>
                             <td>
                               <button
-                                className={`d-inline-block ${
-                                  event.paid
+                                className={`d-inline-block ${event.paid
                                     ? "bg-success-100 text-success-600"
                                     : "bg-danger-100 text-danger-600"
-                                }`}
+                                  }`}
                                 style={{
                                   border: "none",
                                   outline: "none",
@@ -7358,16 +7339,12 @@ const SalesStatisticOne = () => {
                             .replace(/\//g, "/");
 
                           // Safely get member names with fallbacks
-                          const toMemberName = `${
-                            item.toMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.toMember?.personalDetails?.lastName || ""
-                          }`.trim();
-                          const fromMemberName = `${
-                            item.fromMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.fromMember?.personalDetails?.lastName || ""
-                          }`.trim();
+                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
+                            } ${item.toMember?.personalDetails?.lastName || ""
+                            }`.trim();
+                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
+                            } ${item.fromMember?.personalDetails?.lastName || ""
+                            }`.trim();
 
                           return (
                             <tr key={item._id} className="text-xs">
