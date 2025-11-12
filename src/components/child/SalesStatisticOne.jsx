@@ -4981,7 +4981,7 @@ const SalesStatisticOne = () => {
                 </div>
 
                 {/* Category */}
-                <div className="row mb-24 gy-3 align-items-center">
+                {/* <div className="row mb-24 gy-3 align-items-center">
                   <label className="form-label mb-0 col-sm-3">Category</label>
                   <div className="col-sm-9">
                     <input
@@ -5005,7 +5005,7 @@ const SalesStatisticOne = () => {
                       </div>
                     )}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Address */}
                 <div className="row mb-24 gy-3 align-items-center">
@@ -6316,7 +6316,7 @@ const SalesStatisticOne = () => {
                         <th>To Member</th>
                         <th>From Member</th>
                         <th>Referral Name</th>
-                        <th>Category</th>
+                        {/* <th>Category</th> */}
                         <th>Status</th>
                         <th>Phone Number</th>
                         <th>Address</th>
@@ -6345,7 +6345,7 @@ const SalesStatisticOne = () => {
                               <td>{toMemberName}</td>
                               <td>{fromMemberName}</td>
                               <td>{item.referalDetail.name}</td>
-                              <td>{item.referalDetail.category}</td>
+                              {/* <td>{item.referalDetail.category}</td> */}
                               <td>{item.referalStatus}</td>
                               <td>{item.referalDetail.mobileNumber}</td>
                               <td>{item.referalDetail.address}</td>
