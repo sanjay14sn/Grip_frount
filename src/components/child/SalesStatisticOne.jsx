@@ -1637,14 +1637,14 @@ const SalesStatisticOne = () => {
                         {formCount?.visitorCount || 0}
                       </h6>
                       <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
-                        <Link
+                        {/* <Link
                           to="#"
                           className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
                           data-bs-toggle="modal"
                           data-bs-target="#visitorSubmitModal"
                         >
                           Submit
-                        </Link>
+                        </Link> */}
 
                         <Link
                           to="#"
