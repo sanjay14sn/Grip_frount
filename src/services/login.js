@@ -81,6 +81,19 @@ class LoginApiProvider {
     }
   }
 
+
+
+  
+  async getMemberProfile(id) {
+    try {
+      const response = await apiClient.get(`/members/${id}`);
+      return response.data;
+    } catch (err) {
+      console.error("Fetch error:", err);
+      throw err;
+    }
+  }
+
   async updateMemberProfile(id, input) {
     try {
       const response = await apiClient.put(

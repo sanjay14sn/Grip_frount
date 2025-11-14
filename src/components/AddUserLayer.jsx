@@ -1,297 +1,359 @@
 import React, { useState, useEffect } from "react";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import updateMemberProfile from "../services/login";
 import loginApiProvider from "../services/login";
-import { IMAGE_BASE_URL } from "../config";
 
 const AddUserLayer = () => {
-  const [userData, setUserData] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    companyName: "",
-    mobileNumber: "",
-    email: "",
-    image: "",
+    personalDetails: {
+      firstName: "",
+      lastName: "",
+      dob: "",
+    },
+    businessAddress: {
+      addressLine1: "",
+      addressLine2: "",
+      state: "",
+      city: "",
+      postalCode: "",
+    },
+    contactDetails: {
+      secondaryPhone: "",
+      website: "",
+    },
+    businessDetails: {
+      businessDescription: "",
+      yearsInBusiness: "",
+    },
   });
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Fetch user data
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (userData) getMemberById(userData);
+    console.log("userData._id", userData?.id);
+  }, []);
 
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreviewUrl(reader.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const getMemberById = async (userData) => {
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("firstName", formData.firstName);
-      formDataToSend.append("lastName", formData.lastName);
-      formDataToSend.append("companyName", formData.companyName);
-      formDataToSend.append("mobileNumber", formData.mobileNumber);
-      formDataToSend.append("email", formData.email);
+      const res = await loginApiProvider.getMemberById(userData?.id);
+      console.log("response123", res?.response?.data);
 
-      if (selectedFile) {
-        formDataToSend.append("profileImage", selectedFile);
-      }
+      if (res?.status && res.response?.data) {
+        const d = res.response.data;
 
-      const response = await loginApiProvider.updateMemberProfile(
-        userData._id,
-        formDataToSend
-      );
-
-      if (response?.status) {
-        // Update state locally
-        setUserData((prev) => ({
-          ...prev,
+        setFormData({
           personalDetails: {
-            ...prev.personalDetails,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            companyName: formData.companyName,
+            firstName: d.personalDetails?.firstName || "",
+            lastName: d.personalDetails?.lastName || "",
+            companyName: d.personalDetails?.companyName || "",
+            industry: d.personalDetails?.industry || "",
+            dob: d.personalDetails?.dob?.split("T")[0] || "",
+            categoryRepresented: d.personalDetails?.categoryRepresented || "",
+            previouslyGRIPMember: !!d.personalDetails?.previouslyGRIPMember,
+            isOtherNetworkingOrgs: !!d.personalDetails?.isOtherNetworkingOrgs,
+            otherNetworkingOrgs: d.personalDetails?.otherNetworkingOrgs || "",
+            education: d.personalDetails?.education || "",
+            pins: Array.isArray(d.personalDetails?.pins)
+              ? d.personalDetails.pins
+              : [],
+          },
+          businessAddress: {
+            addressLine1: d.businessAddress?.addressLine1 || "",
+            addressLine2: d.businessAddress?.addressLine2 || "",
+            state: d.businessAddress?.state || "",
+            city: d.businessAddress?.city || "",
+            postalCode: d.businessAddress?.postalCode || "",
           },
           contactDetails: {
-            ...prev.contactDetails,
-            mobileNumber: formData.mobileNumber,
-            email: formData.email,
+            email: d.contactDetails?.email || "",
+            mobileNumber: d.contactDetails?.mobileNumber || "",
+            secondaryPhone: d.contactDetails?.secondaryPhone || "",
+            website: d.contactDetails?.website || "",
           },
-        }));
-
-        toast.success("Profile updated successfully!");
-        window.location.href = "/dashboard";
+          businessDetails: {
+            businessDescription: d.businessDetails?.businessDescription || "",
+            yearsInBusiness: d.businessDetails?.yearsInBusiness || "",
+          },
+          businessReferences: d.businessReferences || [],
+          chapterInfo: {
+            countryName: d.chapterInfo?.countryName || "",
+            stateName: d.chapterInfo?.stateName || "",
+            zoneId: d.chapterInfo?.zoneId || { _id: "", zoneName: "" },
+            chapterId: d.chapterInfo?.chapterId || { _id: "", chapterName: "" },
+          },
+          termsAndCertifications: {
+            willAttendMeetingsOnTime:
+              !!d.termsAndCertifications?.willAttendMeetingsOnTime,
+            willBringVisitors: !!d.termsAndCertifications?.willBringVisitors,
+            willDisplayPositiveAttitude:
+              !!d.termsAndCertifications?.willDisplayPositiveAttitude,
+            willRespectConfidentiality:
+              !!d.termsAndCertifications?.willRespectConfidentiality,
+          },
+          status: d.status || "",
+          role: d.role || "",
+          type: d.type || "",
+          isActive: d.isActive ?? true,
+        });
+      } else {
+        toast.error(res.response?.message || "Failed to fetch member details");
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+      console.error("Failed to fetch member data:", error);
+      toast.error("Error fetching member data");
     }
   };
 
-  /** Fetch user data from API */
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const storedUserData = JSON.parse(localStorage.getItem("userData"));
-      if (!storedUserData) return;
+  // 🧩 HANDLE INPUTS
+  const handleInputChange = (e, section, field) => {
+    const value = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
 
-      const response = await loginApiProvider.getMemberById(storedUserData?.id);
-      if (response?.status) {
-        const data = response.response.data;
-        setUserData(data);
+  // 🧩 HANDLE SUBMIT (Update)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      // ✅ Get only the editable fields
+      const payload = {
+        personalDetails: {
+          firstName: formData.personalDetails.firstName,
+          lastName: formData.personalDetails.lastName,
+          dob: formData.personalDetails.dob,
+        },
+        businessAddress: {
+          addressLine1: formData.businessAddress.addressLine1,
+          addressLine2: formData.businessAddress.addressLine2,
+          state: formData.businessAddress.state,
+          city: formData.businessAddress.city,
+          postalCode: formData.businessAddress.postalCode,
+        },
+        contactDetails: {
+          secondaryPhone: formData.contactDetails.secondaryPhone,
+          website: formData.contactDetails.website,
+        },
+        businessDetails: {
+          businessDescription: formData.businessDetails.businessDescription,
+          yearsInBusiness: formData.businessDetails.yearsInBusiness,
+        },
+      };
 
-        setFormData({
-          firstName: data.personalDetails?.firstName || "",
-          lastName: data.personalDetails?.lastName || "",
-          companyName: data.personalDetails?.companyName || "",
-          mobileNumber: data.contactDetails?.mobileNumber || "",
-          email: data.contactDetails?.email || "",
-          image: data.personalDetails?.profileImage || "",
-        });
+      console.log("clean payload", payload);
+      const storedUser = JSON.parse(localStorage.getItem("userData"));
+      const userId = storedUser?.member?.id || storedUser?.id;
 
-        if (data.profileImageUrl) {
-          setImagePreviewUrl(data.profileImageUrl);
-        }
+      // const { status, response } = await loginApiProvider.updateMemberProfile(id, payload);
+      const { status, response } = await loginApiProvider.updateMemberProfile(
+        userId,
+        payload
+      );
+
+      if (status) {
+        toast.success("Profile updated successfully!");
+        navigate("/members");
+      } else {
+        toast.error(response?.message || "Failed to update profile");
       }
-    };
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong while updating");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUserData();
-  }, []);
-
-  if (!userData) return <div>Loading...</div>;
-
-  // Profile Image Fallback Logic
-  const profileImageUrl =
-    imagePreviewUrl ||
-    (formData.image
-      ? `${IMAGE_BASE_URL}/${formData.image.docPath}/${formData.image.docName}`
-      : userData.profileImageUrl || "");
+  // 🧩 LOADING STATE
+  if (loading) return <p className="text-center mt-4">Loading...</p>;
 
   return (
-    <div className="card h-100 p-0 radius-12">
-      <div className="card-body p-24">
-        <div className="row justify-content-center">
-          <div className="col-xxl-6 col-xl-8 col-lg-10">
-            <div className="card border">
-              <div className="card-body">
-                {/* Profile Image Upload */}
-                <h6 className="text-md text-primary-light mb-16">
-                  Profile Image
-                </h6>
-                <div className="mb-24 mt-16">
-                  <div className="avatar-upload">
-                    <div className="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
-                      <input
-                        type="file"
-                        id="imageUpload"
-                        accept=".png, .jpg, .jpeg"
-                        hidden
-                        onChange={handleImageChange}
-                      />
-                      <label
-                        htmlFor="imageUpload"
-                        className="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle"
-                      >
-                        <Icon icon="solar:camera-outline" className="icon" />
-                      </label>
-                    </div>
-                    <div className="avatar-preview">
-                      <div
-                        id="imagePreview"
-                        style={{
-                          backgroundImage: profileImageUrl
-                            ? `url(${profileImageUrl})`
-                            : "none",
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit}>
-                  {/* First Name */}
-                  <div className="mb-20">
-                    <label className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      First Name <span className="text-danger-600">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control radius-8"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^[a-zA-Z]*$/.test(value)) {
-                          handleInputChange(e);
-                        }
-                      }}
-                      pattern="[a-zA-Z]+"
-                      title="Please enter only alphabets (no numbers or special characters)"
-                      required
-                    />
-                    {formData.firstName &&
-                      !/^[a-zA-Z]+$/.test(formData.firstName) && (
-                        <div className="text-danger small mt-1">
-                          Only alphabets are allowed
-                        </div>
-                      )}
-                  </div>
-
-                  {/* Last Name */}
-                  <div className="mb-20">
-                    <label className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Last Name <span className="text-danger-600">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control radius-8"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^[a-zA-Z]*$/.test(value)) {
-                          handleInputChange(e);
-                        }
-                      }}
-                      pattern="[a-zA-Z]+"
-                      title="Please enter only alphabets (no numbers or special characters)"
-                      required
-                    />
-                    {formData.lastName &&
-                      !/^[a-zA-Z]+$/.test(formData.lastName) && (
-                        <div className="text-danger small mt-1">
-                          Only alphabets are allowed
-                        </div>
-                      )}
-                  </div>
-
-                  {/* Company Name */}
-                  <div className="mb-20">
-                    <label className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Company Name <span className="text-danger-600">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control radius-8"
-                      name="companyName"
-                      value={formData.companyName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  {/* Mobile Number */}
-                  <div className="mb-20">
-                    <label className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Mobile Number
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control radius-8"
-                      name="mobileNumber"
-                      value={formData.mobileNumber}
-                      disabled
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div className="mb-20">
-                    <label className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Email <span className="text-danger-600">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control radius-8"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="d-flex align-items-center justify-content-center gap-3">
-                    <button
-                      type="button"
-                      className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8"
-                      onClick={() => (window.location.href = "/dashboard")}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn btn-primary grip text-md px-56 py-12 radius-8"
-                      disabled={
-                        !formData.firstName ||
-                        !/^[a-zA-Z]+$/.test(formData.firstName) ||
-                        !formData.lastName ||
-                        !/^[a-zA-Z]+$/.test(formData.lastName) ||
-                        !formData.companyName ||
-                        !formData.email
-                      }
-                    >
-                      Save
-                    </button>
-                  </div>
-                </form>
+    <div className="col-lg-12">
+      <form onSubmit={handleSubmit}>
+        {/* Personal Details */}
+        <div className="card mt-24">
+          <div className="card-header">
+            <h6 className="card-title mb-0">Personal Details</h6>
+          </div>
+          <div className="card-body">
+            <div className="row gy-3">
+              <div className="col-4">
+                <label className="form-label">
+                  First Name<span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.personalDetails.firstName}
+                  onChange={(e) =>
+                    handleInputChange(e, "personalDetails", "firstName")
+                  }
+                />
+                {errors.personalDetails?.firstName && (
+                  <span className="text-danger">
+                    {errors.personalDetails.firstName}
+                  </span>
+                )}
+              </div>
+              <div className="col-4">
+                <label className="form-label">Last Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={formData.personalDetails.lastName}
+                  onChange={(e) =>
+                    handleInputChange(e, "personalDetails", "lastName")
+                  }
+                />
+              </div>
+              <div className="col-4">
+                <label className="form-label">Date of Birth</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={formData.personalDetails.dob}
+                  onChange={(e) =>
+                    handleInputChange(e, "personalDetails", "dob")
+                  }
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Business Address */}
+        <div className="card mt-24">
+          <div className="card-header">
+            <h6 className="card-title mb-0">Business Address</h6>
+          </div>
+          <div className="card-body">
+            <div className="row gy-3">
+              {[
+                "addressLine1",
+                "addressLine2",
+                "state",
+                "city",
+                "postalCode",
+              ].map((field) => (
+                <div key={field} className="col-4">
+                  <label className="form-label">{field}</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.businessAddress[field]}
+                    onChange={(e) =>
+                      handleInputChange(e, "businessAddress", field)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Details */}
+        <div className="card mt-24">
+          <div className="card-header">
+            <h6 className="card-title mb-0">Contact Details</h6>
+          </div>
+          <div className="card-body">
+            <div className="row gy-3">
+              {["secondaryPhone", "website"].map((field) => (
+                <div key={field} className="col-6">
+                  <label className="form-label">{field}</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.contactDetails[field]}
+                    onChange={(e) =>
+                      handleInputChange(e, "contactDetails", field)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Business Details */}
+        <div className="card mt-24">
+          <div className="card-header">
+            <h5 className="card-title mb-0">Your Business Details</h5>
+          </div>
+          <div className="card-body">
+            <div className="row">
+              <div className="col-lg-6">
+                <label className="form-label">
+                  Describe Your Business Details
+                </label>
+                <textarea
+                  className="form-control"
+                  rows={2}
+                  value={formData.businessDetails.businessDescription}
+                  onChange={(e) =>
+                    handleInputChange(
+                      e,
+                      "businessDetails",
+                      "businessDescription"
+                    )
+                  }
+                />
+              </div>
+              <div className="col-6">
+                <label className="form-label">Years in Business</label>
+                <select
+                  className="form-control form-select"
+                  value={formData.businessDetails.yearsInBusiness}
+                  onChange={(e) =>
+                    handleInputChange(e, "businessDetails", "yearsInBusiness")
+                  }
+                >
+                  <option value="" disabled>
+                    Select duration
+                  </option>
+                  <option value="below_1_year">Below 1 year</option>
+                  <option value="1_5_years">1 to 5 years</option>
+                  <option value="6_10_years">6 to 10 years</option>
+                  <option value="11_15_years">11 to 15 years</option>
+                  <option value="above_15_years">Above 15 years</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="d-flex align-items-center justify-content-end gap-3 mt-10">
+          <button
+            type="button"
+            className="border border-danger-600 text-danger-600 bg-transparent hover:bg-danger-100 text-md px-56 py-11 radius-8"
+            onClick={() => navigate("/dashboard")}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="bg-primary-600 hover:bg-primary-700 text-white text-md px-56 py-12 radius-8 border-0"
+            disabled={loading}
+          >
+            {loading ? "Updating..." : "Update Profile"}
+          </button>
+        </div>
+      </form>
+
+      <ToastContainer />
     </div>
   );
 };
