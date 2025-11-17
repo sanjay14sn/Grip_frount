@@ -9,9 +9,13 @@ import { useNavigate } from "react-router-dom";
 import formApiProvider from "../../services/formApi";
 import loginApiProvider from "../../services/login";
 import registerApiProvider from "../../services/register";
+import topAchiverApi from "../../services/topAchiverApi";
 import { IMAGE_BASE_URL } from "../../config";
 import { toast, ToastContainer } from "react-toastify";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import AchieverCarousel from "../../components/TopAchieversCarousel";
+
+
 
 // import socketProvider from '../../services/socketProvider';
 
@@ -89,8 +93,33 @@ const SalesStatisticOne = () => {
   // State for Visitor Popup
   const [showVisitorPopup, setShowVisitorPopup] = useState(false);
   const [showThankYouPopup, setShowThankYouPopup] = useState(false);
-
   const [showOneToOnePopup, setShowOneToOnePopup] = useState(false);
+
+  const [topAchivers, setTopAchivers] = useState([]);
+  const loadTopAchivers = async (chapterId) => {
+    try {
+      const responseResult = await topAchiverApi.getTopAchiver(chapterId);
+      if (responseResult && responseResult.status) {
+        let data = responseResult.data; // same style as your example
+        console.log("topAchieversData", data);
+
+        setTopAchivers(data || []);
+      } else {
+        console.error(responseResult.message);
+      }
+    } catch (error) {
+      console.error("API ERROR:", error);
+    }
+  };
+
+useEffect(() => {
+  const chapterId = userData?.chapterInfo?.chapterId?._id;
+  if (chapterId) {
+    loadTopAchivers(chapterId);
+  }
+}, [userData?.chapterInfo?.chapterId?._id]);
+
+  
 
   const handleMemberClick = (member) => {
     setSelectedMember(member);
@@ -1927,6 +1956,40 @@ const SalesStatisticOne = () => {
                   </span>
                 </li>
               </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* carousel slider component added */}
+      <div className="col-xxl-7 col-xl-7">
+        <div className="card h-100 border-0 shadow-none">
+          <div
+            className="card-body p-2 d-flex justify-content-center"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <div style={{ width: "100%", maxWidth: "500px" }}>
+              <AchieverCarousel topAchivers={topAchivers} />
+              {/* 💡 Show loader when data is fetching */}
+              {/* {!topAchivers ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "20px",
+                    fontSize: "16px",
+                    fontWeight: "500",
+                    color: "#555",
+                  }}
+                >
+                  Top Achievers details loading...
+                </div>
+              ) : (
+                <AchieverCarousel topAchivers={topAchivers} />
+              )} */}
             </div>
           </div>
         </div>
