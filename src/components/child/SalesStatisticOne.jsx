@@ -1664,7 +1664,10 @@ const SalesStatisticOne = () => {
             >
               Renewal Due Date:
               <br />
-              01/05/2026
+              {userData?.personalDetails?.renewalDate
+  ? new Date(userData.personalDetails.renewalDate)
+      .toLocaleDateString("en-GB")  // en-GB = DD/MM/YYYY
+  : ""}
             </Link>
           </div>
         </div>
