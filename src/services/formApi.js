@@ -129,6 +129,55 @@ class FormApiProvider {
         }
     }
 
+
+    // expectedvisitor
+    async submitExpectedVisitors(input) {
+  try {
+    const token = localStorage.getItem("userToken");
+
+    const response = await apiClient.post(`/expectedVisitors`, input, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 200 || response.status === 201) {
+      return { status: true, response: response.data };
+    } else {
+      return { status: false, response: response.data };
+    }
+  } catch (error) {
+    return { status: false, response: error.response?.data ?? null };
+  }
+}
+
+
+async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
+  try {
+    const token = localStorage.getItem("userToken");
+
+    const response = await apiClient.get(
+      `/expectedVisitors?chapterId=${chapterId}&fromDate=${fromDate}&toDate=${toDate}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      return { status: true, response: response.data };
+    } else {
+      return { status: false, response: response.data };
+    }
+  } catch (error) {
+    return { status: false, response: error.response?.data ?? null };
+  }
+}
+
+
+
+
     async getOneToOneDatasById(from, to) {
         console.log("getOneToOneDatasById called with from:", from, "to:", to);
 

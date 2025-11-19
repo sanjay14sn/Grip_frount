@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-
 import { Icon } from "@iconify/react/dist/iconify.js";
 import ReactApexChart from "react-apexcharts";
 import useReactApexChart from "../../hook/useReactApexChart";
@@ -14,8 +13,6 @@ import { IMAGE_BASE_URL } from "../../config";
 import { toast, ToastContainer } from "react-toastify";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import AchieverCarousel from "../../components/TopAchieversCarousel";
-
-
 
 // import socketProvider from '../../services/socketProvider';
 
@@ -35,12 +32,12 @@ const SalesStatisticOne = () => {
   const [date, setDate] = useState("");
   const [onToOneDatas, setOnToOneDatas] = useState([]);
   const [visitorsDatas, setVisitorsDatas] = useState([]);
+  const [expectedVisitorsDatas, setExpectedVisitorsDatas] = useState([]);
   const [thankYouSlipDatas, setThankYouSlipDatas] = useState([]);
   const [referalDatas, setReferalDatas] = useState([]);
   const [thankyouReceivedDatas, setThankyouReceivedDatas] = useState([]);
   const [referalReceivedDatas, setReferalReceivedDatas] = useState([]);
   const [testimonialReceivedDatas, settestimonialReceivedDatas] = useState([]);
-
   const [testimonialGivenDatas, setTestimonialGivenDatas] = useState([]);
   // const [formCount, setFormCount] = useState({});
   const [meetingLocationType, setMeetingLocationType] = useState("");
@@ -112,14 +109,12 @@ const SalesStatisticOne = () => {
     }
   };
 
-useEffect(() => {
-  const chapterId = userData?.chapterInfo?.chapterId?._id;
-  if (chapterId) {
-    loadTopAchivers(chapterId);
-  }
-}, [userData?.chapterInfo?.chapterId?._id]);
-
-  
+  useEffect(() => {
+    const chapterId = userData?.chapterInfo?.chapterId?._id;
+    if (chapterId) {
+      loadTopAchivers(chapterId);
+    }
+  }, [userData?.chapterInfo?.chapterId?._id]);
 
   const handleMemberClick = (member) => {
     setSelectedMember(member);
@@ -133,6 +128,7 @@ useEffect(() => {
     setSelectedFilter(value);
     getDashboardCounts(value);
   };
+
   const [formData, setFormData] = useState({
     selectedMember: "",
     selectedChapter: "",
@@ -202,7 +198,7 @@ useEffect(() => {
     console.log(responceResult, "responceResult");
     if (responceResult && responceResult.status) {
       let data = responceResult?.response?.data;
-      console.log(data, "ddddddddddd");
+      console.log("data123", data);
       setUserData(data);
     }
   };
@@ -265,6 +261,22 @@ useEffect(() => {
     );
     if (result && result.status) {
       setVisitorsDatas(result?.response?.data || []);
+    }
+  };
+
+  // expectedvisitors function
+  const getExpectedVisitorDatas = async () => {
+    const chapterId =
+      userData?.chapterInfo?.chapterId?._id || userData?.chapterInfo?.chapterId;
+
+    const result = await formApiProvider.getExpectedVisitorsDatasById(
+      chapterId,
+      dateRange.fromDate,
+      dateRange.toDate
+    );
+
+    if (result && result.status) {
+      setExpectedVisitorsDatas(result?.response?.data || []);
     }
   };
 
@@ -629,6 +641,102 @@ useEffect(() => {
     }
   };
 
+  // expectedvistors handle submit
+  const handleExpectedVisitSubmit = async (e) => {
+    e.preventDefault();
+
+    const newErrors = {};
+
+    if (!visitorName || visitorName.trim() === "") {
+      newErrors.visitorName = "Visitor name is required";
+    }
+
+    if (!company || company.trim() === "") {
+      newErrors.company = "Company name is required";
+    }
+
+    if (!category || category.trim() === "") {
+      newErrors.category = "Category is required";
+    }
+
+    if (!mobile || !/^[6-9]\d{9}$/.test(mobile)) {
+      newErrors.mobile = "Valid 10-digit mobile number is required";
+    }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Valid email address is required";
+    }
+
+    if (!address || address.trim() === "") {
+      newErrors.address = "Address is required";
+    }
+
+    if (!visitDate) {
+      newErrors.visitDate = "Visit date is required";
+    }
+
+    setErrors(newErrors);
+
+    // Stop submission if errors exist
+    if (Object.keys(newErrors).length > 0) return;
+
+    const user = JSON.parse(localStorage.getItem("userData"));
+
+    const formData = {
+      name: visitorName.trim(),
+      company: company.trim(),
+      category: category.trim(),
+      mobile: mobile.trim(),
+      email: email.trim(),
+      address: address.trim(),
+      visitDate,
+      chapterId: user?.chapterId, // REQUIRED
+      createdBy: user?.id, // REQUIRED by DTO
+      invitedBy: user?.id,
+    };
+    console.log("Expected Visitor Form submitted:", formData);
+    try {
+      const formSubmit = await formApiProvider.submitExpectedVisitors(formData);
+      console.log(formSubmit, "expectedVisitor formSubmit");
+
+      if (formSubmit && formSubmit.status) {
+        setSelectedMember("");
+        setSelectInviteBy("");
+        setPhoto(null);
+        setUseCrossChapter(false);
+        setSelectedChapter("");
+        setLocation("");
+        setDate("");
+        setTopic("");
+        setErrors({});
+
+        const modalElement = document.getElementById("expectedVisitorModal");
+        if (modalElement) {
+          const modal = Modal.getInstance(modalElement);
+          if (modal) {
+            modal.hide();
+
+            const backdrops = document.querySelectorAll(".modal-backdrop");
+            backdrops.forEach((backdrop) => backdrop.remove());
+
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
+          }
+        }
+      } else {
+        toast.error(
+          formSubmit.response?.message || "Failed to create expected visitor"
+        );
+      }
+
+      getDashboardCounts(selectedFilter);
+    } catch (error) {
+      console.error("Error submitting expected visitor form:", error);
+      setErrors({ submit: "Something went wrong. Please try again." });
+    }
+  };
+
   const handleBusinessSubmit = async (e) => {
     e.preventDefault();
     const formData = {
@@ -848,8 +956,9 @@ useEffect(() => {
         return {
           id: ival._id || `unknown_${ival.id}`, // Fallback ID if missing
           name:
-            `${personalDetails.firstName || ""} ${personalDetails.lastName || ""
-              }`.trim() || "Unnamed Member",
+            `${personalDetails.firstName || ""} ${
+              personalDetails.lastName || ""
+            }`.trim() || "Unnamed Member",
         };
       });
       console.log(data, "data");
@@ -860,7 +969,7 @@ useEffect(() => {
   const fetchGetAllChapter = async () => {
     const resultALlChapter = await formApiProvider.getAllChapter();
 
-    console.log(resultALlChapter, "resultALlChapter");
+    console.log("resultALlChapter", resultALlChapter);
     if (resultALlChapter && resultALlChapter.status) {
       let data = resultALlChapter?.response?.data;
       if (data) {
@@ -1688,6 +1797,43 @@ useEffect(() => {
                     </div>
                   </div>
 
+                  {/* expected visitors */}
+                  <div className="col-sm-3 col-xs-3">
+                    <div className="radius-8 h-100 text-center p-20 bg-danger-100">
+                      <span className="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-xl mb-12 border border-danger-400 text-black">
+                        <i className="ri-user-follow-line" />
+                      </span>
+
+                      <span className="text-neutral-700 d-block">
+                        Expected Visitor
+                      </span>
+
+                      <h6 className="mb-0 mt-4">
+                        {formCount?.expectedVisitorCount || 0}
+                      </h6>
+
+                      <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
+                        <Link
+                          to="#"
+                          className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
+                          data-bs-toggle="modal"
+                          data-bs-target="#expectedVisitorModal"
+                        >
+                          Submit
+                        </Link>
+                        <Link
+                          to="#"
+                          className="btn rounded-pill bg-gradient-blue-warning text-white radius-8 px-12 py-6 flex-grow-1"
+                          data-bs-toggle="modal"
+                          data-bs-target="#expectedVisitorReceiveModal"
+                          onClick={() => getExpectedVisitorDatas()}
+                        >
+                          Review
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="col-sm-3 col-xs-3">
                     <div className="radius-8 h-100 text-center p-20 bg-danger-100 ">
                       <span className="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-xl mb-12  border border-danger-400 text-black">
@@ -1853,13 +1999,13 @@ useEffect(() => {
                           <span className="text-xs text-secondary-light fw-medium">
                             {event.date
                               ? new Date(event.date).toLocaleDateString(
-                                "en-US",
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                }
-                              )
+                                  "en-US",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  }
+                                )
                               : "Date not specified"}
                           </span>
                         </div>
@@ -1868,10 +2014,11 @@ useEffect(() => {
                             ₹{event.amount || "1000"}
                           </h6>
                           <button
-                            className={`text-xs fw-medium px-3 border-0 ${event.paid
+                            className={`text-xs fw-medium px-3 border-0 ${
+                              event.paid
                                 ? "text-success-600 bg-success-100"
                                 : "text-danger-600 bg-danger-100"
-                              }`}
+                            }`}
                             style={{
                               padding: "2px 7px",
                               borderRadius: "4px",
@@ -1879,7 +2026,7 @@ useEffect(() => {
                             }}
                             data-bs-toggle="modal"
                             data-bs-target="#paymentDetails"
-                          // onClick={() => handlePayment(event.id)}
+                            // onClick={() => handlePayment(event.id)}
                           >
                             {event.paid ? "Paid" : "Pay Now"}
                           </button>
@@ -2066,28 +2213,28 @@ useEffect(() => {
                         <strong>Start: </strong>
                         {event.startDate
                           ? new Date(event.startDate).toLocaleString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
                           : "Date not set"}
                       </p>
                       <p className="m-0">
                         <strong>End: </strong>
                         {event.endDate
                           ? new Date(event.endDate).toLocaleString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
                           : "Date not set"}
                       </p>
                     </div>
@@ -2445,7 +2592,7 @@ useEffect(() => {
                         src={
                           selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                            selectedMember?.personalDetails?.profileImage?.docName
+                          selectedMember?.personalDetails?.profileImage?.docName
                             ? `${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`
                             : "assets/images/avatar/avatar.jpg"
                         }
@@ -2739,8 +2886,9 @@ useEffect(() => {
                   {/* Member List */}
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {memberList.map((member, idx) => {
-                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
-                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${
+                        member.personalDetails?.firstName?.charAt(0) || ""
+                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = member.personalDetails?.profileImage
                         ?.docPath
                         ? `${IMAGE_BASE_URL}/${member.personalDetails.profileImage.docPath}/${member.personalDetails.profileImage.docName}`
@@ -3195,8 +3343,9 @@ useEffect(() => {
       </div>
       {/* Testimonial Given Modal */}
       <div
-        className={`modal fade ${showTestimonialGivenPopup ? "show d-block" : ""
-          }`}
+        className={`modal fade ${
+          showTestimonialGivenPopup ? "show d-block" : ""
+        }`}
         tabIndex="-1"
       >
         <div
@@ -3373,8 +3522,9 @@ useEffect(() => {
       </div>
       {/* Testimonial received Modal */}
       <div
-        className={`modal ${showTestimonialReceivedPopup ? "d-block" : "d-none"
-          }`}
+        className={`modal ${
+          showTestimonialReceivedPopup ? "d-block" : "d-none"
+        }`}
         tabIndex="-1"
       >
         <div
@@ -3781,7 +3931,7 @@ useEffect(() => {
                       <button
                         className="btn btn-primary grip"
                         style={{ minWidth: "60px" }}
-                      // onClick={() => handleApplyDateFilter(visitorsDatas)}
+                        // onClick={() => handleApplyDateFilter(visitorsDatas)}
                       >
                         Go
                       </button>
@@ -4099,8 +4249,9 @@ useEffect(() => {
                     <div>
                       <strong>Ruuning Member: </strong>
                       {selectedMember?.personalDetails
-                        ? `${selectedMember.personalDetails.firstName || ""} ${selectedMember.personalDetails.lastName || ""
-                        }`
+                        ? `${selectedMember.personalDetails.firstName || ""} ${
+                            selectedMember.personalDetails.lastName || ""
+                          }`
                         : "N/A"}{" "}
                       | Chapter:{" "}
                       {selectedMember?.chapterInfo?.chapterId?.chapterName ||
@@ -4143,33 +4294,37 @@ useEffect(() => {
                             const formatDate = (date) =>
                               date
                                 ? new Date(date).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                })
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                  })
                                 : "N/A";
 
                             const toMemberName = item.toMember?.personalDetails
-                              ? `${item.toMember.personalDetails.firstName || ""
-                              } ${item.toMember.personalDetails.lastName || ""
-                              }`
+                              ? `${
+                                  item.toMember.personalDetails.firstName || ""
+                                } ${
+                                  item.toMember.personalDetails.lastName || ""
+                                }`
                               : "N/A";
 
                             const fromMemberName = item.fromMember
                               ?.personalDetails
-                              ? `${item.fromMember.personalDetails.firstName ||
-                              ""
-                              } ${item.fromMember.personalDetails.lastName || ""
-                              }`
+                              ? `${
+                                  item.fromMember.personalDetails.firstName ||
+                                  ""
+                                } ${
+                                  item.fromMember.personalDetails.lastName || ""
+                                }`
                               : "N/A";
 
                             const meetingLocation =
                               item.whereDidYouMeet === "commonlocation"
                                 ? "Common Location"
                                 : item.whereDidYouMeet
-                                  ? item.whereDidYouMeet.charAt(0).toUpperCase() +
+                                ? item.whereDidYouMeet.charAt(0).toUpperCase() +
                                   item.whereDidYouMeet.slice(1)
-                                  : "N/A";
+                                : "N/A";
 
                             return (
                               <tr key={item._id || Math.random()}>
@@ -4179,7 +4334,7 @@ useEffect(() => {
                                 <td>{meetingLocation}</td>
                                 <td>
                                   {item.images?.[0]?.docPath &&
-                                    item.images?.[0]?.docName ? (
+                                  item.images?.[0]?.docName ? (
                                     <img
                                       style={{ width: "50px" }}
                                       src={`${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`}
@@ -4255,8 +4410,8 @@ useEffect(() => {
                         <div className="text-center">
                           {selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                            selectedMember?.personalDetails?.profileImage
-                              ?.docName ? (
+                          selectedMember?.personalDetails?.profileImage
+                            ?.docName ? (
                             <img
                               src={`${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`}
                               alt="avatar"
@@ -4342,26 +4497,31 @@ useEffect(() => {
                           <p className="mb-2" style={{ fontSize: "13px" }}>
                             <strong>Address:</strong>{" "}
                             {`
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.addressLine1 || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.addressLine2 || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.city || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.postalCode || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.state || ""
-                              }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.addressLine1 || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.addressLine2 || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.city || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.postalCode || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.state || ""
+                                                        }
                                                     `
                               .replace(/\s+/g, " ")
                               .trim() || "N/A"}
@@ -4420,8 +4580,9 @@ useEffect(() => {
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {globalMembers.map((member, idx) => {
                       // Extract the first letter of first and last name for avatar fallback
-                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
-                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${
+                        member.personalDetails?.firstName?.charAt(0) || ""
+                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = `${IMAGE_BASE_URL}/${member.personalDetails?.profileImage?.docPath}/${member.personalDetails?.profileImage?.docName}`;
 
                       return (
@@ -5759,6 +5920,468 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      {/* expected visitor submit modal */}
+      <div
+        className="modal fade"
+        id="expectedVisitorModal"
+        tabIndex={-1}
+        aria-labelledby="expectedVisitorModal"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-centered">
+          <div className="modal-content radius-16 bg-base">
+            <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
+              <h1 className="modal-title fs-5" id="expectedVisitorModal">
+                Expected Visitor Follow Up
+              </h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+
+            <div className="modal-body">
+              <div className="row mb-3">
+                <div className="col-sm-6 fw-medium">
+                  Chapter: {userData?.chapterInfo?.chapterId?.chapterName}
+                </div>
+              </div>
+
+              <form
+                onSubmit={handleExpectedVisitSubmit}
+                className="mx-auto pb-3"
+                style={{ maxWidth: "700px" }}
+              >
+                {/* Name Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">
+                    Name<span className="text-danger"></span>
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter expected visitor name"
+                      value={visitorName}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setVisitorName(value);
+                        }
+                      }}
+                      pattern="[a-zA-Z\s]+"
+                      title="Please enter only alphabets"
+                    />
+                    {visitorName && !/^[a-zA-Z\s]+$/.test(visitorName) && (
+                      <div className="text-danger small mt-1">
+                        Only alphabets and spaces are allowed
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Company Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Company</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter company name"
+                      value={company}
+                      onChange={(e) => {
+                        setCompany(e.target.value);
+                        setErrors({});
+                      }}
+                    />
+                    {errors.company && (
+                      <div className="text-danger small">{errors.company}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Category Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Category</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter category name"
+                      value={category}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setCategory(value);
+                          setErrors({});
+                        }
+                      }}
+                      pattern="[a-zA-Z\s]+"
+                      title="Please enter only alphabets"
+                      required
+                    />
+                    {category && !/^[a-zA-Z\s]+$/.test(category) && (
+                      <div className="text-danger small mt-1">
+                        Only alphabets and spaces are allowed
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Mobile</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="Enter mobile number"
+                      value={mobile}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value) && value.length <= 10) {
+                          setMobile(value);
+                          setErrors({});
+                        }
+                      }}
+                      pattern="\d{10}"
+                      title="Please enter exactly 10 digits"
+                    />
+                    {mobile && !/^\d{10}$/.test(mobile) && (
+                      <div className="text-danger small mt-1">
+                        Please enter exactly 10 digits
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Email Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Email</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Enter email address"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setErrors({});
+                      }}
+                    />
+                    {errors.email && (
+                      <div className="text-danger small">{errors.email}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Address Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Address</label>
+                  <div className="col-sm-10">
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      placeholder="Enter address"
+                      value={address}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        setErrors({});
+                      }}
+                    ></textarea>
+                    {errors.address && (
+                      <div className="text-danger small">{errors.address}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Visit Date Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Visit Date</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={visitDate}
+                      onChange={(e) => {
+                        setVisitDate(e.target.value);
+                        setErrors({});
+                      }}
+                    />
+                    {errors.visitDate && (
+                      <div className="text-danger small">
+                        {errors.visitDate}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="d-flex align-items-center justify-content-center gap-3 mt-24">
+                  <button
+                    type="submit"
+                    className="btn btn-primary grip px-40 py-11 radius-8"
+                    disabled={
+                      !visitorName ||
+                      !/^[a-zA-Z\s]+$/.test(visitorName) ||
+                      !mobile ||
+                      !/^\d{10}$/.test(mobile) ||
+                      !category ||
+                      !/^[a-zA-Z\s]+$/.test(category) ||
+                      !visitDate
+                    }
+                  >
+                    Submit
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-outline-grip px-40 py-11 radius-8"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* visitor submit model */}
+      <div
+        className="modal fade"
+        id="visitorSubmitModal"
+        tabIndex={-1}
+        aria-labelledby="visitorSubmitModal"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-centered">
+          <div className="modal-content radius-16 bg-base">
+            <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
+              <h1 className="modal-title fs-5" id="visitorSubmitModal">
+                Visitor follow up
+              </h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+
+            <div className="modal-body">
+              <div className="row mb-3">
+                <div className="col-sm-6 fw-medium">
+                  Chapter: {userData?.chapterInfo?.chapterId?.chapterName}
+                </div>
+                {/* <div className="col-sm-6 text-end fw-medium"><span className="text-danger">*</span> Required fields</div> */}
+              </div>
+
+              <form
+                onSubmit={handleVisitSubmit}
+                className="mx-auto pb-3"
+                style={{ maxWidth: "700px" }}
+              >
+                {/* Name Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">
+                    Name<span className="text-danger"></span>
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter visitor name"
+                      value={visitorName}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setVisitorName(value);
+                        }
+                      }}
+                      pattern="[a-zA-Z\s]+"
+                      title="Please enter only alphabets"
+                    />
+                    {visitorName && !/^[a-zA-Z\s]+$/.test(visitorName) && (
+                      <div className="text-danger small mt-1">
+                        Only alphabets and spaces are allowed
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Company Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Company</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter company name"
+                      value={company}
+                      onChange={(e) => {
+                        setCompany(e.target.value);
+                        setErrors({});
+                      }}
+                    />
+                    {errors.company && (
+                      <div className="text-danger small">{errors.company}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Category Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Category</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter category name"
+                      value={category}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setCategory(value);
+                          setErrors({});
+                        }
+                      }}
+                      pattern="[a-zA-Z\s]+"
+                      title="Please enter only alphabets"
+                      required
+                    />
+                    {category && !/^[a-zA-Z\s]+$/.test(category) && (
+                      <div className="text-danger small mt-1">
+                        Only alphabets and spaces are allowed
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">
+                    Mobile<span className="text-danger"></span>
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="Enter mobile number"
+                      value={mobile}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value) && value.length <= 10) {
+                          setMobile(value);
+                          setErrors({});
+                        }
+                      }}
+                      pattern="\d{10}"
+                      title="Please enter exactly 10 digits"
+                    />
+                    {mobile && !/^\d{10}$/.test(mobile) && (
+                      <div className="text-danger small mt-1">
+                        Please enter exactly 10 digits
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Email Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Email</label>
+                  <div className="col-sm-10">
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Enter email address"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setErrors({});
+                      }}
+                    />
+                    {errors.email && (
+                      <div className="text-danger small">{errors.email}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Address Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">Address</label>
+                  <div className="col-sm-10">
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      placeholder="Enter address"
+                      value={address}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        setErrors({});
+                      }}
+                    ></textarea>
+                    {errors.address && (
+                      <div className="text-danger small">{errors.address}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Visit Date Field */}
+                <div className="row mb-24 gy-3 align-items-center">
+                  <label className="form-label mb-0 col-sm-2">
+                    Visit Date<span className="text-danger"></span>
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={visitDate}
+                      onChange={(e) => {
+                        setVisitDate(e.target.value);
+                        setErrors({});
+                      }}
+                    />
+                    {errors.visitDate && (
+                      <div className="text-danger small">
+                        {errors.visitDate}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="d-flex align-items-center justify-content-center gap-3 mt-24">
+                  <button
+                    type="submit"
+                    className="btn btn-primary grip px-40 py-11 radius-8"
+                    disabled={
+                      !visitorName ||
+                      !/^[a-zA-Z\s]+$/.test(visitorName) ||
+                      !mobile ||
+                      !/^\d{10}$/.test(mobile) ||
+                      !category ||
+                      !/^[a-zA-Z\s]+$/.test(category) ||
+                      !visitDate
+                    }
+                  >
+                    Submit
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-grip px-40 py-11 radius-8"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* visitor receive model */}
       <div
         class="modal fade"
@@ -5913,6 +6536,165 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      {/* expected receive modal */}
+      <div
+        className="modal fade"
+        id="expectedVisitorReceiveModal"
+        tabIndex={-1}
+        aria-labelledby="expectedVisitorReceiveModal"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-centered">
+          <div className="modal-content radius-16 bg-base">
+            <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
+              <h1 className="modal-title fs-5 text-danger">
+                Chapter : Expected Visitor Report
+              </h1>
+              <button className="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div className="modal-body">
+              {/* Date Filter */}
+              <div className="d-flex align-items-end gap-3 mb-3">
+                <div>
+                  <label className="form-label">Start Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    name="fromDate"
+                    value={dateRange.fromDate}
+                    onChange={handleDateRangeChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">End Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    name="toDate"
+                    value={dateRange.toDate}
+                    onChange={handleDateRangeChange}
+                  />
+                </div>
+
+                <button
+                  className="btn btn-primary grip"
+                  // onClick={() => handleApplyDateFilter(getExpectedVisitorDatas)}
+                >
+                  Go
+                </button>
+              </div>
+
+              {/* Report Header */}
+              <div className="bg-danger-100 p-3 rounded d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <strong>Chapter : Expected Visitor Report</strong>
+                  <div className="d-flex gap-5 mt-2">
+                    <small>
+                      Running User
+                      <br />
+                      <strong>
+                        {userData?.personalDetails?.firstName +
+                          " " +
+                          userData?.personalDetails?.lastName}
+                      </strong>
+                    </small>
+
+                    <small>
+                      Chapter
+                      <br />
+                      <strong>
+                        {userData?.chapterInfo?.chapterId?.chapterName}
+                      </strong>
+                    </small>
+                  </div>
+                </div>
+
+                <div className="d-flex gap-2">
+                  <button className="btn btn-primary grip text-xs btn-sm">
+                    Export
+                  </button>
+                  <button className="btn btn-primary grip text-xs btn-sm">
+                    Print
+                  </button>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="table-responsive">
+                <table className="table table-bordered table-striped">
+                  <thead className="table-danger grip">
+                    <tr className="text-xs">
+                      <th>Visit Date</th>
+                      <th>Name</th>
+                      <th>Company</th>
+                      <th>Category</th>
+                      <th>Mobile</th>
+                      <th>Email</th>
+                      <th>Address</th>
+                      <th>Invited By</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {expectedVisitorsDatas &&
+                    expectedVisitorsDatas.length > 0 ? (
+                      expectedVisitorsDatas.map((item) => {
+                        // Format date
+                        const formattedDate = new Date(
+                          item.visitDate
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "2-digit",
+                        });
+
+                        // Handle invitedBy safely
+                        const invitedByName = item.invitedBy
+                          ? `${
+                              item.invitedBy?.personalDetails?.firstName || ""
+                            } ${
+                              item.invitedBy?.personalDetails?.lastName || ""
+                            }`
+                          : "—";
+
+                        return (
+                          <tr key={item._id}>
+                            <td>{formattedDate}</td>
+                            <td>{item.name}</td>
+                            <td>{item.company}</td>
+                            <td>{item.category}</td>
+                            <td>{item.mobile}</td>
+                            <td>{item.email}</td>
+                            <td>{item.address}</td>
+                            <td>{invitedByName}</td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="text-center">
+                          No expected visitors found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="modal-footer border-top-0">
+              <button
+                className="btn text-grip btn-outline-grip"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* onetoone report model */}
       <div
         class="modal fade"
@@ -6041,15 +6823,18 @@ useEffect(() => {
                           // const toMemberName = `${item.toMember.personalDetails.firstName} ${item.toMember.personalDetails.lastName}`;
                           // const fromMemberName = `${item.fromMember.personalDetails.firstName} ${item.fromMember.personalDetails.lastName}`;
                           const toMemberName = item.toMember?.personalDetails
-                            ? `${item.toMember.personalDetails.firstName || ""
-                            } ${item.toMember.personalDetails.lastName || ""}`
+                            ? `${
+                                item.toMember.personalDetails.firstName || ""
+                              } ${item.toMember.personalDetails.lastName || ""}`
                             : "N/A";
 
                           const fromMemberName = item.fromMember
                             ?.personalDetails
-                            ? `${item.fromMember.personalDetails.firstName || ""
-                            } ${item.fromMember.personalDetails.lastName || ""
-                            }`
+                            ? `${
+                                item.fromMember.personalDetails.firstName || ""
+                              } ${
+                                item.fromMember.personalDetails.lastName || ""
+                              }`
                             : "N/A";
 
                           // Format meeting location
@@ -6057,7 +6842,7 @@ useEffect(() => {
                             item.whereDidYouMeet === "commonlocation"
                               ? "Common Location"
                               : item.whereDidYouMeet.charAt(0).toUpperCase() +
-                              item.whereDidYouMeet.slice(1);
+                                item.whereDidYouMeet.slice(1);
 
                           return (
                             <tr key={item._id} className="text-xs">
@@ -6074,7 +6859,7 @@ useEffect(() => {
                                   style={{ width: "50px" }}
                                   src={
                                     item.images?.[0]?.docPath &&
-                                      item.images?.[0]?.docName
+                                    item.images?.[0]?.docName
                                       ? `${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`
                                       : ""
                                   }
@@ -6735,12 +7520,16 @@ useEffect(() => {
                             .replace(/\//g, "/");
 
                           // Get member full names with optional chaining
-                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
-                            } ${item.toMember?.personalDetails?.lastName || ""
-                            }`.trim();
-                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
-                            } ${item.fromMember?.personalDetails?.lastName || ""
-                            }`.trim();
+                          const toMemberName = `${
+                            item.toMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.toMember?.personalDetails?.lastName || ""
+                          }`.trim();
+                          const fromMemberName = `${
+                            item.fromMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.fromMember?.personalDetails?.lastName || ""
+                          }`.trim();
 
                           // Safely access referral details with fallbacks
                           const referralDetail = item.referalDetail || {};
@@ -6891,10 +7680,11 @@ useEffect(() => {
                             <td>₹{event.amount || "1000"}</td>
                             <td>
                               <button
-                                className={`d-inline-block ${event.paid
+                                className={`d-inline-block ${
+                                  event.paid
                                     ? "bg-success-100 text-success-600"
                                     : "bg-danger-100 text-danger-600"
-                                  }`}
+                                }`}
                                 style={{
                                   border: "none",
                                   outline: "none",
@@ -7402,12 +8192,16 @@ useEffect(() => {
                             .replace(/\//g, "/");
 
                           // Safely get member names with fallbacks
-                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
-                            } ${item.toMember?.personalDetails?.lastName || ""
-                            }`.trim();
-                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
-                            } ${item.fromMember?.personalDetails?.lastName || ""
-                            }`.trim();
+                          const toMemberName = `${
+                            item.toMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.toMember?.personalDetails?.lastName || ""
+                          }`.trim();
+                          const fromMemberName = `${
+                            item.fromMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.fromMember?.personalDetails?.lastName || ""
+                          }`.trim();
 
                           return (
                             <tr key={item._id} className="text-xs">
