@@ -419,7 +419,7 @@ const SalesStatisticOne = () => {
         referralStatus: "",
         name: "",
         mobile: "",
-        category: "",
+        // category: "",
         address: "",
         comments: "",
       });
