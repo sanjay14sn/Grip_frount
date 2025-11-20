@@ -384,9 +384,9 @@ const SalesStatisticOne = () => {
     if (!formData.mobile || !/^[6-9]\d{9}$/.test(formData.mobile)) {
       newErrors.mobile = "Valid 10-digit mobile number is required";
     }
-    if (!category || category.trim() === "") {
-      newErrors.category = "Category is required";
-    }
+    // if (!category || category.trim() === "") {
+    //   newErrors.category = "Category is required";
+    // }
 
     setRefferalFormErrors(newErrors);
 
@@ -398,7 +398,7 @@ const SalesStatisticOne = () => {
       referalStatus: formData.referralStatus,
       referalDetail: {
         name: formData.name,
-        category: category,
+        // category: category,
         mobileNumber: formData.mobile,
         comments: formData.comments,
         address: formData.address,
@@ -1818,7 +1818,7 @@ const SalesStatisticOne = () => {
                       <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
                         <Link
                           to="#"
-                          className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
+                          className="btn rounded-pill bg-gradient-blue-warning text-white radius-8 px-12 py-6 flex-grow-1"
                           data-bs-toggle="modal"
                           data-bs-target="#expectedVisitorModal"
                         >
@@ -1851,7 +1851,7 @@ const SalesStatisticOne = () => {
                       <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
                         <Link
                           to="#"
-                          className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
+                          className="btn rounded-pill bg-gradient-blue-warning text-white radius-8 px-12 py-6 flex-grow-1"
                           data-bs-toggle="modal"
                           data-bs-target="#exampleModalOne"
                         >
@@ -1884,7 +1884,7 @@ const SalesStatisticOne = () => {
                       <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
                         <Link
                           to="#"
-                          className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
+                          className="btn rounded-pill bg-gradient-blue-warning text-white radius-8 px-12 py-6 flex-grow-1"
                           data-bs-toggle="modal"
                           data-bs-target="#exampleModalReferal"
                         >
@@ -1916,7 +1916,7 @@ const SalesStatisticOne = () => {
                       <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
                         <Link
                           to="#"
-                          className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
+                          className="btn rounded-pill bg-gradient-blue-warning text-white radius-8 px-12 py-6 flex-grow-1"
                           data-bs-toggle="modal"
                           data-bs-target="#exampleModalTwo"
                         >
@@ -1949,7 +1949,7 @@ const SalesStatisticOne = () => {
                       <div className="d-flex align-items-center flex-wrap mt-12 gap-8">
                         <Link
                           to="#"
-                          className="btn rounded-pill border btn-primary-black text-white border-neutral-500 radius-8 px-12 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1"
+                          className="btn rounded-pill bg-gradient-blue-warning text-white radius-8 px-12 py-6 flex-grow-1"
                           data-bs-toggle="modal"
                           data-bs-target="#exampleModal"
                         >
@@ -4969,6 +4969,8 @@ const SalesStatisticOne = () => {
         aria-labelledby="exampleModalLabel"
         aria-hidden="true"
       >
+
+       {/* referal submition with email trigger */}
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content radius-16 bg-base">
             <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
@@ -5271,9 +5273,9 @@ const SalesStatisticOne = () => {
                       !formData.name ||
                       !/^[a-zA-Z\s]+$/.test(formData.name) ||
                       !formData.mobile ||
-                      !/^\d{10}$/.test(formData.mobile) ||
-                      !category ||
-                      !/^[a-zA-Z\s]+$/.test(category)
+                      !/^\d{10}$/.test(formData.mobile) 
+                      // !category ||                     // category not available in the form field
+                      // !/^[a-zA-Z\s]+$/.test(category)  // category not available in the form field 
                     }
                   >
                     Submit
