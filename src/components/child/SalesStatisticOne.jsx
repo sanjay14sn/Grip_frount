@@ -1,3 +1,4 @@
+import * as bootstrap from "bootstrap";
 import React, { useEffect, useState, useRef } from "react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import ReactApexChart from "react-apexcharts";
@@ -13,6 +14,8 @@ import { IMAGE_BASE_URL } from "../../config";
 import { toast, ToastContainer } from "react-toastify";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import AchieverCarousel from "../../components/TopAchieversCarousel";
+import ReferralApiProvider from "../../services/referralApi";
+
 
 // import socketProvider from '../../services/socketProvider';
 
@@ -35,6 +38,7 @@ const SalesStatisticOne = () => {
   const [expectedVisitorsDatas, setExpectedVisitorsDatas] = useState([]);
   const [thankYouSlipDatas, setThankYouSlipDatas] = useState([]);
   const [referalDatas, setReferalDatas] = useState([]);
+  const [selectedReferral, setSelectedReferral] = useState(null); 
   const [thankyouReceivedDatas, setThankyouReceivedDatas] = useState([]);
   const [referalReceivedDatas, setReferalReceivedDatas] = useState([]);
   const [testimonialReceivedDatas, settestimonialReceivedDatas] = useState([]);
@@ -737,41 +741,63 @@ const SalesStatisticOne = () => {
     }
   };
 
-  const handleBusinessSubmit = async (e) => {
-    e.preventDefault();
-    const formData = {
-      toMember: selectedMember,
-      amount: Number(amount),
-      comments,
-    };
-    console.log("Form submitted:", formData);
-    const result = await formApiProvider.submitThankyouSlip(formData);
+const handleBusinessSubmit = async (e) => {
+  e.preventDefault();
 
-    if (result && result.status) {
-      setSelectedMember("");
-      setUseCrossChapter(false);
-      setSelectedChapter("");
-      setAmount("");
-      setComments("");
-      const modalElement = document.getElementById("exampleModalOne");
-      if (modalElement) {
-        const modal = Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
+  const isBusinessClosed = !!selectedReferral;  
+  // selectedReferral exists ONLY for dropdown -> business closed
 
-          // Manually remove backdrop and restore scrolling
-          const backdrops = document.querySelectorAll(".modal-backdrop");
-          backdrops.forEach((backdrop) => backdrop.remove());
+  const payload = {
+    toMember: selectedMember,
+    amount: Number(amount),
+    comments,
 
-          document.body.classList.remove("modal-open");
-          document.body.style.overflow = "";
-          document.body.style.paddingRight = "";
-        }
-      }
-
-      getDashboardCounts(selectedFilter);
-    }
+    ...(isBusinessClosed && {
+      referralStatus: "Business Closed",
+      referralId: selectedReferral?._id,
+      referralName: selectedReferral?.referalDetail?.name,
+    })
   };
+
+  const result = await formApiProvider.submitThankyouSlip(payload);
+
+  if (result && result.status) {
+
+    // BUSINESS CLOSED FLOW → SHOW TOAST
+    if (isBusinessClosed) {
+      toast.success("Business Closed updated & mail sent successfully!");
+    }
+
+    // RESET FORM
+    setSelectedMember("");
+    setUseCrossChapter(false);
+    setSelectedChapter("");
+    setAmount("");
+    setComments("");
+    setSelectedReferral(null);
+
+    // CLOSE MODAL
+    const modalElement = document.getElementById("exampleModalOne");
+    if (modalElement) {
+      const modal = Modal.getInstance(modalElement);
+      if (modal) modal.hide();
+    }
+
+    setTimeout(() => {
+      document.querySelectorAll(".modal-backdrop").forEach((b) => b.remove());
+      document.body.classList.remove("modal-open");
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }, 300);
+
+    // REFRESH COUNTS
+    getDashboardCounts(selectedFilter);
+
+  } else {
+    toast.error(result.response?.message || "Failed to submit");
+  }
+};
+
 
   const handlePrint = () => {
     const content = document.getElementById("printable-area");
@@ -1582,6 +1608,106 @@ const SalesStatisticOne = () => {
       setShowOneToOnePopup(true); // still open modal
     }
   };
+
+
+
+const updateReferralStatusInState = (id, newStatus) => {
+  setReferalReceivedDatas(prev =>
+    prev.map(item =>
+      item._id === id ? { ...item, referalStatus: newStatus } : item
+    )
+  );
+};
+
+const handleReferralStatusChange = async (status, item) => {
+  // Update UI state immediately
+  updateReferralStatusInState(item._id, status);
+
+  // 1️⃣ Business Closed → open Thank You modal
+ if (status === "Business Closed") {
+    setSelectedReferral(item);   // <-- IMPORTANT: SAVE REFERRAL FOR SUBMIT
+
+    const referralModalEl = document.getElementById("referralreceiveReportModal");
+    const referralModal = Modal.getInstance(referralModalEl);
+    if (referralModal) referralModal.hide();
+
+    referralModalEl.addEventListener(
+      "hidden.bs.modal",
+      () => {
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
+
+        const thankyouModalEl = document.getElementById("exampleModalOne");
+        const thankyouModal = new Modal(thankyouModalEl);
+        thankyouModal.show();
+      },
+      { once: true }
+    );
+
+    return;
+  }
+
+  // 2️⃣ Not Required / Contacted → Send Mail & Close Modal
+  if (status === "Not Required" || status === "Contacted") {
+    const payload = {
+      referralId: item._id,
+      status,
+      toMember: {
+        firstName: item.toMember?.personalDetails?.firstName,
+        lastName: item.toMember?.personalDetails?.lastName,
+        email: item.toMember?.personalDetails?.email,
+      },
+      fromMember: {
+        firstName: item.fromMember?.personalDetails?.firstName,
+        lastName: item.fromMember?.personalDetails?.lastName,
+        email: item.fromMember?.personalDetails?.email,
+      },
+      referralDetail: {
+        name: item.referalDetail?.name,
+        category: item.referalDetail?.category,
+        mobileNumber: item.referalDetail?.mobileNumber,
+        address: item.referalDetail?.address,
+        comments: item.referalDetail?.comments,
+        status: item.referalStatus,
+        createdDate: item.createdAt,
+      },
+    };
+
+    try {
+      const apiRes = await ReferralApiProvider.sendReferralStatusMail(payload);
+
+      if (apiRes.status) {
+        toast.success(apiRes.response.message ?? "Mail sent!");
+
+        // Close modal after success
+        const referralModalEl = document.getElementById("referralreceiveReportModal");
+        const referralModal = Modal.getInstance(referralModalEl);
+
+        if (referralModal) referralModal.hide();
+
+        setTimeout(() => {
+          document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+          document.body.classList.remove("modal-open");
+          document.body.style.overflow = "";
+          document.body.style.paddingRight = "";
+        }, 300);
+
+      } else {
+        toast.error(apiRes.response?.message ?? "Mail failed");
+      }
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong.");
+    }
+  }
+};
+
+
+
+
 
   return (
     <>
@@ -7505,6 +7631,7 @@ const SalesStatisticOne = () => {
                         <th>To Member</th>
                         <th>From Member</th>
                         <th>Referral Name</th>
+                        <th>Referral Status</th>
                         <th>Category</th>
                         <th>Status</th>
                         <th>Phone Number</th>
@@ -7545,6 +7672,21 @@ const SalesStatisticOne = () => {
                               <td>{toMemberName || "-"}</td>
                               <td>{fromMemberName || "-"}</td>
                               <td>{referralDetail.name || "-"}</td>
+
+                               <td>
+  <select
+    className="form-select form-select-sm"
+    value={item.referalStatus || ""}
+    onChange={(e) => handleReferralStatusChange(e.target.value, item)}
+  >
+    <option value="">Select</option>
+    <option value="Not Required">Not Required</option>
+    <option value="Contacted">Contacted</option>
+    <option value="Business Closed">Business Closed</option>
+  </select>
+</td>
+
+
                               <td>{referralDetail.category || "-"}</td>
                               <td>{item.referalStatus || "-"}</td>
                               <td>{referralDetail.mobileNumber || "-"}</td>
