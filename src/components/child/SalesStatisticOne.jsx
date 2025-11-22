@@ -38,7 +38,7 @@ const SalesStatisticOne = () => {
   const [expectedVisitorsDatas, setExpectedVisitorsDatas] = useState([]);
   const [thankYouSlipDatas, setThankYouSlipDatas] = useState([]);
   const [referalDatas, setReferalDatas] = useState([]);
-  const [selectedReferral, setSelectedReferral] = useState(null); 
+  const [selectedReferral, setSelectedReferral] = useState(null);
   const [thankyouReceivedDatas, setThankyouReceivedDatas] = useState([]);
   const [referalReceivedDatas, setReferalReceivedDatas] = useState([]);
   const [testimonialReceivedDatas, settestimonialReceivedDatas] = useState([]);
@@ -741,62 +741,62 @@ const SalesStatisticOne = () => {
     }
   };
 
-const handleBusinessSubmit = async (e) => {
-  e.preventDefault();
+  const handleBusinessSubmit = async (e) => {
+    e.preventDefault();
 
-  const isBusinessClosed = !!selectedReferral;  
-  // selectedReferral exists ONLY for dropdown -> business closed
+    const isBusinessClosed = !!selectedReferral;
+    // selectedReferral exists ONLY for dropdown -> business closed
 
-  const payload = {
-    toMember: selectedMember,
-    amount: Number(amount),
-    comments,
+    const payload = {
+      toMember: selectedMember,
+      amount: Number(amount),
+      comments,
 
-    ...(isBusinessClosed && {
-      referralStatus: "Business Closed",
-      referralId: selectedReferral?._id,
-      referralName: selectedReferral?.referalDetail?.name,
-    })
+      ...(isBusinessClosed && {
+        referralStatus: "Business Closed",
+        referralId: selectedReferral?._id,
+        referralName: selectedReferral?.referalDetail?.name,
+      })
+    };
+
+    const result = await formApiProvider.submitThankyouSlip(payload);
+
+    if (result && result.status) {
+
+      // BUSINESS CLOSED FLOW → SHOW TOAST
+      if (isBusinessClosed) {
+        toast.success("Business Closed updated & mail sent successfully!");
+      }
+
+      // RESET FORM
+      setSelectedMember("");
+      setUseCrossChapter(false);
+      setSelectedChapter("");
+      setAmount("");
+      setComments("");
+      setSelectedReferral(null);
+
+      // CLOSE MODAL
+      const modalElement = document.getElementById("exampleModalOne");
+      if (modalElement) {
+        const modal = Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+      }
+
+      setTimeout(() => {
+        document.querySelectorAll(".modal-backdrop").forEach((b) => b.remove());
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
+      }, 300);
+
+      // REFRESH COUNTS
+      getDashboardCounts(selectedFilter);
+
+    } else {
+      toast.error(result.response?.message || "Failed to submit");
+    }
   };
-
-  const result = await formApiProvider.submitThankyouSlip(payload);
-
-  if (result && result.status) {
-
-    // BUSINESS CLOSED FLOW → SHOW TOAST
-    if (isBusinessClosed) {
-      toast.success("Business Closed updated & mail sent successfully!");
-    }
-
-    // RESET FORM
-    setSelectedMember("");
-    setUseCrossChapter(false);
-    setSelectedChapter("");
-    setAmount("");
-    setComments("");
-    setSelectedReferral(null);
-
-    // CLOSE MODAL
-    const modalElement = document.getElementById("exampleModalOne");
-    if (modalElement) {
-      const modal = Modal.getInstance(modalElement);
-      if (modal) modal.hide();
-    }
-
-    setTimeout(() => {
-      document.querySelectorAll(".modal-backdrop").forEach((b) => b.remove());
-      document.body.classList.remove("modal-open");
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    }, 300);
-
-    // REFRESH COUNTS
-    getDashboardCounts(selectedFilter);
-
-  } else {
-    toast.error(result.response?.message || "Failed to submit");
-  }
-};
 
 
   const handlePrint = () => {
@@ -982,9 +982,8 @@ const handleBusinessSubmit = async (e) => {
         return {
           id: ival._id || `unknown_${ival.id}`, // Fallback ID if missing
           name:
-            `${personalDetails.firstName || ""} ${
-              personalDetails.lastName || ""
-            }`.trim() || "Unnamed Member",
+            `${personalDetails.firstName || ""} ${personalDetails.lastName || ""
+              }`.trim() || "Unnamed Member",
         };
       });
       console.log(data, "data");
@@ -1611,99 +1610,99 @@ const handleBusinessSubmit = async (e) => {
 
 
 
-const updateReferralStatusInState = (id, newStatus) => {
-  setReferalReceivedDatas(prev =>
-    prev.map(item =>
-      item._id === id ? { ...item, referalStatus: newStatus } : item
-    )
-  );
-};
-
-const handleReferralStatusChange = async (status, item) => {
-  // Update UI state immediately
-  updateReferralStatusInState(item._id, status);
-
-  // 1️⃣ Business Closed → open Thank You modal
- if (status === "Business Closed") {
-    setSelectedReferral(item);   // <-- IMPORTANT: SAVE REFERRAL FOR SUBMIT
-
-    const referralModalEl = document.getElementById("referralreceiveReportModal");
-    const referralModal = Modal.getInstance(referralModalEl);
-    if (referralModal) referralModal.hide();
-
-    referralModalEl.addEventListener(
-      "hidden.bs.modal",
-      () => {
-        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-        document.body.classList.remove("modal-open");
-        document.body.style.overflow = "";
-        document.body.style.paddingRight = "";
-
-        const thankyouModalEl = document.getElementById("exampleModalOne");
-        const thankyouModal = new Modal(thankyouModalEl);
-        thankyouModal.show();
-      },
-      { once: true }
+  const updateReferralStatusInState = (id, newStatus) => {
+    setReferalReceivedDatas(prev =>
+      prev.map(item =>
+        item._id === id ? { ...item, referalStatus: newStatus } : item
+      )
     );
+  };
 
-    return;
-  }
+  const handleReferralStatusChange = async (status, item) => {
+    // Update UI state immediately
+    updateReferralStatusInState(item._id, status);
 
-  // 2️⃣ Not Required / Contacted → Send Mail & Close Modal
-  if (status === "Not Required" || status === "Contacted") {
-    const payload = {
-      referralId: item._id,
-      status,
-      toMember: {
-        firstName: item.toMember?.personalDetails?.firstName,
-        lastName: item.toMember?.personalDetails?.lastName,
-        email: item.toMember?.personalDetails?.email,
-      },
-      fromMember: {
-        firstName: item.fromMember?.personalDetails?.firstName,
-        lastName: item.fromMember?.personalDetails?.lastName,
-        email: item.fromMember?.personalDetails?.email,
-      },
-      referralDetail: {
-        name: item.referalDetail?.name,
-        category: item.referalDetail?.category,
-        mobileNumber: item.referalDetail?.mobileNumber,
-        address: item.referalDetail?.address,
-        comments: item.referalDetail?.comments,
-        status: item.referalStatus,
-        createdDate: item.createdAt,
-      },
-    };
+    // 1️⃣ Business Closed → open Thank You modal
+    if (status === "Business Closed") {
+      setSelectedReferral(item);   // <-- IMPORTANT: SAVE REFERRAL FOR SUBMIT
 
-    try {
-      const apiRes = await ReferralApiProvider.sendReferralStatusMail(payload);
+      const referralModalEl = document.getElementById("referralreceiveReportModal");
+      const referralModal = Modal.getInstance(referralModalEl);
+      if (referralModal) referralModal.hide();
 
-      if (apiRes.status) {
-        toast.success(apiRes.response.message ?? "Mail sent!");
-
-        // Close modal after success
-        const referralModalEl = document.getElementById("referralreceiveReportModal");
-        const referralModal = Modal.getInstance(referralModalEl);
-
-        if (referralModal) referralModal.hide();
-
-        setTimeout(() => {
+      referralModalEl.addEventListener(
+        "hidden.bs.modal",
+        () => {
           document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
           document.body.classList.remove("modal-open");
           document.body.style.overflow = "";
           document.body.style.paddingRight = "";
-        }, 300);
 
-      } else {
-        toast.error(apiRes.response?.message ?? "Mail failed");
-      }
+          const thankyouModalEl = document.getElementById("exampleModalOne");
+          const thankyouModal = new Modal(thankyouModalEl);
+          thankyouModal.show();
+        },
+        { once: true }
+      );
 
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong.");
+      return;
     }
-  }
-};
+
+    // 2️⃣ Not Required / Contacted → Send Mail & Close Modal
+    if (status === "Not Required" || status === "Contacted") {
+      const payload = {
+        referralId: item._id,
+        status,
+        toMember: {
+          firstName: item.toMember?.personalDetails?.firstName,
+          lastName: item.toMember?.personalDetails?.lastName,
+          email: item.toMember?.personalDetails?.email,
+        },
+        fromMember: {
+          firstName: item.fromMember?.personalDetails?.firstName,
+          lastName: item.fromMember?.personalDetails?.lastName,
+          email: item.fromMember?.personalDetails?.email,
+        },
+        referralDetail: {
+          name: item.referalDetail?.name,
+          category: item.referalDetail?.category,
+          mobileNumber: item.referalDetail?.mobileNumber,
+          address: item.referalDetail?.address,
+          comments: item.referalDetail?.comments,
+          status: item.referalStatus,
+          createdDate: item.createdAt,
+        },
+      };
+
+      try {
+        const apiRes = await ReferralApiProvider.sendReferralStatusMail(payload);
+
+        if (apiRes.status) {
+          toast.success(apiRes.response.message ?? "Mail sent!");
+
+          // Close modal after success
+          const referralModalEl = document.getElementById("referralreceiveReportModal");
+          const referralModal = Modal.getInstance(referralModalEl);
+
+          if (referralModal) referralModal.hide();
+
+          setTimeout(() => {
+            document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
+          }, 300);
+
+        } else {
+          toast.error(apiRes.response?.message ?? "Mail failed");
+        }
+
+      } catch (err) {
+        console.error(err);
+        toast.error("Something went wrong.");
+      }
+    }
+  };
 
 
 
@@ -1724,6 +1723,26 @@ const handleReferralStatusChange = async (status, item) => {
           </div>
 
           <div className="firstpartt d-flex align-items-center flex-wrap gap-2">
+
+            {/* ⭐ PINS BUTTON — MOVED TO THE FIRST POSITION */}
+            <Link
+              to=""
+              className="btn text-white bg-gradient-blue-warning text-sm btn-sm d-flex align-items-center justify-content-center gap-2 text-center"
+              data-bs-toggle="modal"
+              data-bs-target="#pinsModal"
+              style={{
+                width: "200px",
+                height: "50px",
+                borderRadius: "8px",
+                padding: "12px",
+                whiteSpace: "normal",
+                lineHeight: "1.2",
+              }}
+            >
+              Pins
+            </Link>
+
+            {/* PRINT SLIPS */}
             <button
               onClick={handlePrint}
               className="btn text-white bg-gradient-blue-warning text-sm btn-sm d-flex align-items-center justify-content-center gap-2 text-center"
@@ -1731,7 +1750,6 @@ const handleReferralStatusChange = async (status, item) => {
                 width: "200px",
                 height: "50px",
                 borderRadius: "8px",
-
                 padding: "12px",
                 whiteSpace: "normal",
                 lineHeight: "1.2",
@@ -1739,6 +1757,8 @@ const handleReferralStatusChange = async (status, item) => {
             >
               Print Your Slips
             </button>
+
+            {/* MEMBER SEARCH */}
             <Link
               to=""
               className="btn text-white bg-gradient-blue-warning text-sm btn-sm d-flex align-items-center justify-content-center gap-2 text-center"
@@ -1759,6 +1779,7 @@ const handleReferralStatusChange = async (status, item) => {
               Member search
             </Link>
 
+            {/* GLOBAL SEARCH */}
             <Link
               to=""
               className="btn text-white bg-gradient-blue-warning text-sm btn-sm d-flex align-items-center justify-content-center gap-2 text-center"
@@ -1776,6 +1797,7 @@ const handleReferralStatusChange = async (status, item) => {
               Global search
             </Link>
 
+            {/* RENEWAL DATE */}
             <Link
               to=""
               className="btn text-white bg-gradient-blue-warning text-sm btn-sm d-flex align-items-center justify-content-center gap-2 text-center"
@@ -1791,10 +1813,67 @@ const handleReferralStatusChange = async (status, item) => {
               Renewal Due Date:
               <br />
               {userData?.personalDetails?.renewalDate
-  ? new Date(userData.personalDetails.renewalDate)
-      .toLocaleDateString("en-GB")  // en-GB = DD/MM/YYYY
-  : ""}
+                ? new Date(userData.personalDetails.renewalDate).toLocaleDateString(
+                  "en-GB"
+                )
+                : ""}
             </Link>
+          </div>
+
+          {/* ⭐ PINS MODAL (unchanged) */}
+          <div
+            className="modal fade"
+            id="pinsModal"
+            tabIndex="-1"
+            aria-labelledby="pinsModalLabel"
+            aria-hidden="true"
+          >
+            <div className="modal-dialog modal-dialog-centered modal-lg">
+              <div className="modal-content">
+
+                <div className="modal-header">
+                  <h5 className="modal-title" id="pinsModalLabel">Your Pins</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+
+                <div className="modal-body">
+                  {userData?.personalDetails?.pins?.length > 0 ? (
+                    <div className="row g-3">
+
+                      {userData.personalDetails.pins.map((pin) => (
+                        <div key={pin._id} className="col-6 col-md-4 text-center">
+                          <div
+                            className="p-3 border rounded"
+                            style={{ borderRadius: "12px" }}
+                          >
+                            <img
+                              src={`${process.env.REACT_APP_IMAGE_URL}/pins/${pin.image}`}
+                              alt={pin.name}
+                              style={{
+                                width: "80px",
+                                height: "80px",
+                                objectFit: "cover",
+                                borderRadius: "10px",
+                              }}
+                            />
+                            <p className="mt-2 fw-semibold">{pin.name}</p>
+                          </div>
+                        </div>
+                      ))}
+
+                    </div>
+                  ) : (
+                    <p className="text-center">No Pins Found</p>
+                  )}
+                </div>
+
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2128,13 +2207,13 @@ const handleReferralStatusChange = async (status, item) => {
                           <span className="text-xs text-secondary-light fw-medium">
                             {event.date
                               ? new Date(event.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
                               : "Date not specified"}
                           </span>
                         </div>
@@ -2143,11 +2222,10 @@ const handleReferralStatusChange = async (status, item) => {
                             ₹{event.amount || "1000"}
                           </h6>
                           <button
-                            className={`text-xs fw-medium px-3 border-0 ${
-                              event.paid
+                            className={`text-xs fw-medium px-3 border-0 ${event.paid
                                 ? "text-success-600 bg-success-100"
                                 : "text-danger-600 bg-danger-100"
-                            }`}
+                              }`}
                             style={{
                               padding: "2px 7px",
                               borderRadius: "4px",
@@ -2155,7 +2233,7 @@ const handleReferralStatusChange = async (status, item) => {
                             }}
                             data-bs-toggle="modal"
                             data-bs-target="#paymentDetails"
-                            // onClick={() => handlePayment(event.id)}
+                          // onClick={() => handlePayment(event.id)}
                           >
                             {event.paid ? "Paid" : "Pay Now"}
                           </button>
@@ -2342,28 +2420,28 @@ const handleReferralStatusChange = async (status, item) => {
                         <strong>Start: </strong>
                         {event.startDate
                           ? new Date(event.startDate).toLocaleString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
                           : "Date not set"}
                       </p>
                       <p className="m-0">
                         <strong>End: </strong>
                         {event.endDate
                           ? new Date(event.endDate).toLocaleString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
                           : "Date not set"}
                       </p>
                     </div>
@@ -2721,7 +2799,7 @@ const handleReferralStatusChange = async (status, item) => {
                         src={
                           selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                          selectedMember?.personalDetails?.profileImage?.docName
+                            selectedMember?.personalDetails?.profileImage?.docName
                             ? `${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`
                             : "assets/images/avatar/avatar.jpg"
                         }
@@ -3015,9 +3093,8 @@ const handleReferralStatusChange = async (status, item) => {
                   {/* Member List */}
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {memberList.map((member, idx) => {
-                      const initials = `${
-                        member.personalDetails?.firstName?.charAt(0) || ""
-                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
+                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = member.personalDetails?.profileImage
                         ?.docPath
                         ? `${IMAGE_BASE_URL}/${member.personalDetails.profileImage.docPath}/${member.personalDetails.profileImage.docName}`
@@ -3472,9 +3549,8 @@ const handleReferralStatusChange = async (status, item) => {
       </div>
       {/* Testimonial Given Modal */}
       <div
-        className={`modal fade ${
-          showTestimonialGivenPopup ? "show d-block" : ""
-        }`}
+        className={`modal fade ${showTestimonialGivenPopup ? "show d-block" : ""
+          }`}
         tabIndex="-1"
       >
         <div
@@ -3651,9 +3727,8 @@ const handleReferralStatusChange = async (status, item) => {
       </div>
       {/* Testimonial received Modal */}
       <div
-        className={`modal ${
-          showTestimonialReceivedPopup ? "d-block" : "d-none"
-        }`}
+        className={`modal ${showTestimonialReceivedPopup ? "d-block" : "d-none"
+          }`}
         tabIndex="-1"
       >
         <div
@@ -4060,7 +4135,7 @@ const handleReferralStatusChange = async (status, item) => {
                       <button
                         className="btn btn-primary grip"
                         style={{ minWidth: "60px" }}
-                        // onClick={() => handleApplyDateFilter(visitorsDatas)}
+                      // onClick={() => handleApplyDateFilter(visitorsDatas)}
                       >
                         Go
                       </button>
@@ -4378,9 +4453,8 @@ const handleReferralStatusChange = async (status, item) => {
                     <div>
                       <strong>Ruuning Member: </strong>
                       {selectedMember?.personalDetails
-                        ? `${selectedMember.personalDetails.firstName || ""} ${
-                            selectedMember.personalDetails.lastName || ""
-                          }`
+                        ? `${selectedMember.personalDetails.firstName || ""} ${selectedMember.personalDetails.lastName || ""
+                        }`
                         : "N/A"}{" "}
                       | Chapter:{" "}
                       {selectedMember?.chapterInfo?.chapterId?.chapterName ||
@@ -4423,37 +4497,33 @@ const handleReferralStatusChange = async (status, item) => {
                             const formatDate = (date) =>
                               date
                                 ? new Date(date).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                  })
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "2-digit",
+                                })
                                 : "N/A";
 
                             const toMemberName = item.toMember?.personalDetails
-                              ? `${
-                                  item.toMember.personalDetails.firstName || ""
-                                } ${
-                                  item.toMember.personalDetails.lastName || ""
-                                }`
+                              ? `${item.toMember.personalDetails.firstName || ""
+                              } ${item.toMember.personalDetails.lastName || ""
+                              }`
                               : "N/A";
 
                             const fromMemberName = item.fromMember
                               ?.personalDetails
-                              ? `${
-                                  item.fromMember.personalDetails.firstName ||
-                                  ""
-                                } ${
-                                  item.fromMember.personalDetails.lastName || ""
-                                }`
+                              ? `${item.fromMember.personalDetails.firstName ||
+                              ""
+                              } ${item.fromMember.personalDetails.lastName || ""
+                              }`
                               : "N/A";
 
                             const meetingLocation =
                               item.whereDidYouMeet === "commonlocation"
                                 ? "Common Location"
                                 : item.whereDidYouMeet
-                                ? item.whereDidYouMeet.charAt(0).toUpperCase() +
+                                  ? item.whereDidYouMeet.charAt(0).toUpperCase() +
                                   item.whereDidYouMeet.slice(1)
-                                : "N/A";
+                                  : "N/A";
 
                             return (
                               <tr key={item._id || Math.random()}>
@@ -4463,7 +4533,7 @@ const handleReferralStatusChange = async (status, item) => {
                                 <td>{meetingLocation}</td>
                                 <td>
                                   {item.images?.[0]?.docPath &&
-                                  item.images?.[0]?.docName ? (
+                                    item.images?.[0]?.docName ? (
                                     <img
                                       style={{ width: "50px" }}
                                       src={`${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`}
@@ -4539,8 +4609,8 @@ const handleReferralStatusChange = async (status, item) => {
                         <div className="text-center">
                           {selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                          selectedMember?.personalDetails?.profileImage
-                            ?.docName ? (
+                            selectedMember?.personalDetails?.profileImage
+                              ?.docName ? (
                             <img
                               src={`${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`}
                               alt="avatar"
@@ -4626,31 +4696,26 @@ const handleReferralStatusChange = async (status, item) => {
                           <p className="mb-2" style={{ fontSize: "13px" }}>
                             <strong>Address:</strong>{" "}
                             {`
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.addressLine1 || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.addressLine2 || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.city || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.postalCode || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.state || ""
-                                                        }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.addressLine1 || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.addressLine2 || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.city || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.postalCode || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.state || ""
+                              }
                                                     `
                               .replace(/\s+/g, " ")
                               .trim() || "N/A"}
@@ -4709,9 +4774,8 @@ const handleReferralStatusChange = async (status, item) => {
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {globalMembers.map((member, idx) => {
                       // Extract the first letter of first and last name for avatar fallback
-                      const initials = `${
-                        member.personalDetails?.firstName?.charAt(0) || ""
-                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
+                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = `${IMAGE_BASE_URL}/${member.personalDetails?.profileImage?.docPath}/${member.personalDetails?.profileImage?.docName}`;
 
                       return (
@@ -5096,7 +5160,7 @@ const handleReferralStatusChange = async (status, item) => {
         aria-hidden="true"
       >
 
-       {/* referal submition with email trigger */}
+        {/* referal submition with email trigger */}
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content radius-16 bg-base">
             <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
@@ -5399,7 +5463,7 @@ const handleReferralStatusChange = async (status, item) => {
                       !formData.name ||
                       !/^[a-zA-Z\s]+$/.test(formData.name) ||
                       !formData.mobile ||
-                      !/^\d{10}$/.test(formData.mobile) 
+                      !/^\d{10}$/.test(formData.mobile)
                       // !category ||                     // category not available in the form field
                       // !/^[a-zA-Z\s]+$/.test(category)  // category not available in the form field 
                     }
@@ -6711,7 +6775,7 @@ const handleReferralStatusChange = async (status, item) => {
 
                 <button
                   className="btn btn-primary grip"
-                  // onClick={() => handleApplyDateFilter(getExpectedVisitorDatas)}
+                // onClick={() => handleApplyDateFilter(getExpectedVisitorDatas)}
                 >
                   Go
                 </button>
@@ -6770,7 +6834,7 @@ const handleReferralStatusChange = async (status, item) => {
 
                   <tbody>
                     {expectedVisitorsDatas &&
-                    expectedVisitorsDatas.length > 0 ? (
+                      expectedVisitorsDatas.length > 0 ? (
                       expectedVisitorsDatas.map((item) => {
                         // Format date
                         const formattedDate = new Date(
@@ -6783,11 +6847,9 @@ const handleReferralStatusChange = async (status, item) => {
 
                         // Handle invitedBy safely
                         const invitedByName = item.invitedBy
-                          ? `${
-                              item.invitedBy?.personalDetails?.firstName || ""
-                            } ${
-                              item.invitedBy?.personalDetails?.lastName || ""
-                            }`
+                          ? `${item.invitedBy?.personalDetails?.firstName || ""
+                          } ${item.invitedBy?.personalDetails?.lastName || ""
+                          }`
                           : "—";
 
                         return (
@@ -6954,18 +7016,15 @@ const handleReferralStatusChange = async (status, item) => {
                           // const toMemberName = `${item.toMember.personalDetails.firstName} ${item.toMember.personalDetails.lastName}`;
                           // const fromMemberName = `${item.fromMember.personalDetails.firstName} ${item.fromMember.personalDetails.lastName}`;
                           const toMemberName = item.toMember?.personalDetails
-                            ? `${
-                                item.toMember.personalDetails.firstName || ""
-                              } ${item.toMember.personalDetails.lastName || ""}`
+                            ? `${item.toMember.personalDetails.firstName || ""
+                            } ${item.toMember.personalDetails.lastName || ""}`
                             : "N/A";
 
                           const fromMemberName = item.fromMember
                             ?.personalDetails
-                            ? `${
-                                item.fromMember.personalDetails.firstName || ""
-                              } ${
-                                item.fromMember.personalDetails.lastName || ""
-                              }`
+                            ? `${item.fromMember.personalDetails.firstName || ""
+                            } ${item.fromMember.personalDetails.lastName || ""
+                            }`
                             : "N/A";
 
                           // Format meeting location
@@ -6973,7 +7032,7 @@ const handleReferralStatusChange = async (status, item) => {
                             item.whereDidYouMeet === "commonlocation"
                               ? "Common Location"
                               : item.whereDidYouMeet.charAt(0).toUpperCase() +
-                                item.whereDidYouMeet.slice(1);
+                              item.whereDidYouMeet.slice(1);
 
                           return (
                             <tr key={item._id} className="text-xs">
@@ -6990,7 +7049,7 @@ const handleReferralStatusChange = async (status, item) => {
                                   style={{ width: "50px" }}
                                   src={
                                     item.images?.[0]?.docPath &&
-                                    item.images?.[0]?.docName
+                                      item.images?.[0]?.docName
                                       ? `${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`
                                       : ""
                                   }
@@ -7652,16 +7711,12 @@ const handleReferralStatusChange = async (status, item) => {
                             .replace(/\//g, "/");
 
                           // Get member full names with optional chaining
-                          const toMemberName = `${
-                            item.toMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.toMember?.personalDetails?.lastName || ""
-                          }`.trim();
-                          const fromMemberName = `${
-                            item.fromMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.fromMember?.personalDetails?.lastName || ""
-                          }`.trim();
+                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
+                            } ${item.toMember?.personalDetails?.lastName || ""
+                            }`.trim();
+                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
+                            } ${item.fromMember?.personalDetails?.lastName || ""
+                            }`.trim();
 
                           // Safely access referral details with fallbacks
                           const referralDetail = item.referalDetail || {};
@@ -7673,18 +7728,18 @@ const handleReferralStatusChange = async (status, item) => {
                               <td>{fromMemberName || "-"}</td>
                               <td>{referralDetail.name || "-"}</td>
 
-                               <td>
-  <select
-    className="form-select form-select-sm"
-    value={item.referalStatus || ""}
-    onChange={(e) => handleReferralStatusChange(e.target.value, item)}
-  >
-    <option value="">Select</option>
-    <option value="Not Required">Not Required</option>
-    <option value="Contacted">Contacted</option>
-    <option value="Business Closed">Business Closed</option>
-  </select>
-</td>
+                              <td>
+                                <select
+                                  className="form-select form-select-sm"
+                                  value={item.referalStatus || ""}
+                                  onChange={(e) => handleReferralStatusChange(e.target.value, item)}
+                                >
+                                  <option value="">Select</option>
+                                  <option value="Not Required">Not Required</option>
+                                  <option value="Contacted">Contacted</option>
+                                  <option value="Business Closed">Business Closed</option>
+                                </select>
+                              </td>
 
 
                               <td>{referralDetail.category || "-"}</td>
@@ -7827,11 +7882,10 @@ const handleReferralStatusChange = async (status, item) => {
                             <td>₹{event.amount || "1000"}</td>
                             <td>
                               <button
-                                className={`d-inline-block ${
-                                  event.paid
+                                className={`d-inline-block ${event.paid
                                     ? "bg-success-100 text-success-600"
                                     : "bg-danger-100 text-danger-600"
-                                }`}
+                                  }`}
                                 style={{
                                   border: "none",
                                   outline: "none",
@@ -8339,16 +8393,12 @@ const handleReferralStatusChange = async (status, item) => {
                             .replace(/\//g, "/");
 
                           // Safely get member names with fallbacks
-                          const toMemberName = `${
-                            item.toMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.toMember?.personalDetails?.lastName || ""
-                          }`.trim();
-                          const fromMemberName = `${
-                            item.fromMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.fromMember?.personalDetails?.lastName || ""
-                          }`.trim();
+                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
+                            } ${item.toMember?.personalDetails?.lastName || ""
+                            }`.trim();
+                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
+                            } ${item.fromMember?.personalDetails?.lastName || ""
+                            }`.trim();
 
                           return (
                             <tr key={item._id} className="text-xs">
