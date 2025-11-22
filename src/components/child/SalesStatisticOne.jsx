@@ -7731,7 +7731,7 @@ const SalesStatisticOne = () => {
                               <td>
                                 <select
                                   className="form-select form-select-sm"
-                                  value={item.referalStatus || ""}
+                                   value={item.statusLog?.status || item.referalStatus || ""}
                                   onChange={(e) => handleReferralStatusChange(e.target.value, item)}
                                 >
                                   <option value="">Select</option>
