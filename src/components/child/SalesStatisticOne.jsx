@@ -64,6 +64,8 @@ const SalesStatisticOne = () => {
   const [referalError, setRefferalFormErrors] = useState({});
   const [profilePercentage, setprofilePercentage] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+
   //
   // const [refGiven, setRefGiven] = useState([]);
   // const [loading, setLoading] = useState(false);
@@ -906,6 +908,10 @@ const SalesStatisticOne = () => {
     fetchZones();
   }, []);
 
+
+
+
+
   const fetchZones = async () => {
     try {
       const result = await registerApiProvider.getAllZones();
@@ -917,6 +923,65 @@ const SalesStatisticOne = () => {
       setZones([]); // Set empty array on error
     }
   };
+
+
+  function useChapterDateFilter(chapterList, userData) {
+
+    const [allowedDates, setAllowedDates] = useState([]);
+    useEffect(() => {
+      if (!chapterList || !userData?.chapterInfo?.chapterId?.chapterName) {
+        setAllowedDates([]);
+        return;
+      }
+
+      const chapterName = userData.chapterInfo.chapterId.chapterName;
+
+      const chapter = chapterList.find(
+        (c) => c.chapterName === chapterName
+      );
+
+      if (!chapter || !chapter.weekday) {
+        setAllowedDates([]);
+        return;
+      }
+
+      const targetWeekday = chapter.weekday.toLowerCase();
+
+      const weekMap = {
+        sunday: 0,
+        monday: 1,
+        tuesday: 2,
+        wednesday: 3,
+        thursday: 4,
+        friday: 5,
+        saturday: 6,
+      };
+
+      const weekdayNum = weekMap[targetWeekday];
+      if (weekdayNum === undefined) {
+        setAllowedDates([]);
+        return;
+      }
+
+      const dates = [];
+      let date = new Date();
+
+      // Find next 2 occurrences of that weekday
+      while (dates.length < 2) {
+        if (date.getDay() === weekdayNum) {
+          dates.push(new Date(date));
+        }
+        date.setDate(date.getDate() + 1);
+      }
+
+      setAllowedDates(dates.map((d) => d.toISOString().split("T")[0]));
+    }, [chapterList, userData]); // Runs when chapter list OR user data changes
+
+    return allowedDates;
+  }
+
+
+
 
   useEffect(() => {
     const modalEl = document.getElementById("searchResultModal");
@@ -1779,6 +1844,7 @@ const SalesStatisticOne = () => {
 
 
 
+  const allowedDates = useChapterDateFilter(chapterList, userData);
 
 
   return (
@@ -2416,12 +2482,17 @@ const SalesStatisticOne = () => {
         {/* Upcoming Meetings */}
         <div className="col-xxl-6 col-xl-6 col-lg-6 mb-5">
           <div className="card h-100">
-            <div className="card-body ">
+            <div className="card-body">
               <h6 className="mb-3 fw-bold text-xl">Upcoming Meetings</h6>
 
               <div
-                className="d-flex overflow-auto align-items-stretch py-2"
-                style={{ gap: "1rem", scrollbarWidth: "none" }}
+                className="d-flex align-items-stretch py-2"
+                style={{
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  whiteSpace: "nowrap",
+                  gap: "1rem",
+                }}
               >
                 {upcomingMeetings?.map((event, index) => (
                   <div
@@ -2430,7 +2501,7 @@ const SalesStatisticOne = () => {
                     style={{
                       width: "250px",
                       backgroundColor: "#ffe3e3",
-                      minHeight: "300px",
+                      minHeight: "300px"
                     }}
                   >
                     <div className="border rounded p-3 h-100 d-flex flex-column">
@@ -2445,7 +2516,7 @@ const SalesStatisticOne = () => {
                           width: "100%",
                           height: "200px",
                           objectFit: "cover",
-                          borderRadius: "8px",
+                          borderRadius: "8px"
                         }}
                       />
 
@@ -2467,12 +2538,17 @@ const SalesStatisticOne = () => {
         {/* Upcoming Trainings */}
         <div className="col-xxl-6 col-xl-6 col-lg-6 mb-5">
           <div className="card h-100">
-            <div className="card-body p-4">  {/* Padding added */}
+            <div className="card-body p-4">
               <h6 className="mb-3 fw-bold text-xl">Upcoming Trainings</h6>
 
               <div
-                className="d-flex overflow-auto align-items-stretch py-2"
-                style={{ gap: "1rem", scrollbarWidth: "none" }}
+                className="d-flex align-items-stretch py-2"
+                style={{
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  whiteSpace: "nowrap",
+                  gap: "1rem",
+                }}
               >
                 {upcomingTrainings?.map((event, index) => (
                   <div
@@ -2481,7 +2557,7 @@ const SalesStatisticOne = () => {
                     style={{
                       width: "250px",
                       backgroundColor: "#ffe3e3",
-                      minHeight: "300px",
+                      minHeight: "300px"
                     }}
                   >
                     <div className="border rounded p-3 h-100 d-flex flex-column">
@@ -2497,7 +2573,7 @@ const SalesStatisticOne = () => {
                             width: "100%",
                             maxHeight: "200px",
                             objectFit: "cover",
-                            borderRadius: "8px",
+                            borderRadius: "8px"
                           }}
                         />
                       </div>
@@ -2508,7 +2584,7 @@ const SalesStatisticOne = () => {
                         <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
 
                         {event.trainingType && (
-                          <p><strong>Training Type:</strong> {event.trainingType}</p>
+                          <p><strong>Training Type:</strong> {event?.trainingType || "entire_day"}</p>
                         )}
                       </div>
 
@@ -2523,7 +2599,6 @@ const SalesStatisticOne = () => {
 
       </div>
 
-
       {/* Row 2 → Events */}
       <div className="row mt-4">
         <div className="col-12">
@@ -2532,17 +2607,22 @@ const SalesStatisticOne = () => {
               <h6 className="mb-3 fw-bold text-xl">Upcoming Events</h6>
 
               <div
-                className="d-flex overflow-auto align-items-stretch py-2"
-                style={{ gap: "1rem", scrollbarWidth: "none" }}
+                className="d-flex align-items-stretch py-2"
+                style={{
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  whiteSpace: "nowrap",
+                  gap: "1rem",
+                }}
               >
-                {upcomingEvents?.map((event, index) => (
+                {upcomingEvents?.filter(ev => ev && ev.topic)?.map((event, index) => (
                   <div
                     key={event._id || index}
                     className="flex-shrink-0"
                     style={{
                       width: "250px",
                       backgroundColor: "#ffe3e3",
-                      minHeight: "300px",
+                      minHeight: "300px"
                     }}
                   >
                     <div className="border rounded p-3 h-100 d-flex flex-column">
@@ -2557,7 +2637,7 @@ const SalesStatisticOne = () => {
                           width: "100%",
                           maxHeight: "200px",
                           objectFit: "cover",
-                          borderRadius: "8px",
+                          borderRadius: "8px"
                         }}
                       />
 
@@ -6524,22 +6604,37 @@ const SalesStatisticOne = () => {
                 </div>
 
                 {/* Visit Date Field */}
+
                 <div className="row mb-24 gy-3 align-items-center">
-                  <label className="form-label mb-0 col-sm-2">Visit Date</label>
+                  <label className="form-label mb-0 col-sm-2">
+                    Visit Date<span className="text-danger"></span>
+                  </label>
+
                   <div className="col-sm-10">
+
                     <input
                       type="date"
                       className="form-control"
                       value={visitDate}
+                      min={allowedDates.length > 0 ? allowedDates[0] : ""}
+                      max={allowedDates.length > 1 ? allowedDates[1] : ""}
                       onChange={(e) => {
-                        setVisitDate(e.target.value);
+                        const selected = e.target.value;
+
+                        // Validate against allowed dates
+                        if (!allowedDates.includes(selected)) {
+                          setErrors({ visitDate: "Please select a valid meeting day." });
+                          setVisitDate("");
+                          return;
+                        }
+
+                        setVisitDate(selected);
                         setErrors({});
                       }}
                     />
+
                     {errors.visitDate && (
-                      <div className="text-danger small">
-                        {errors.visitDate}
-                      </div>
+                      <div className="text-danger small">{errors.visitDate}</div>
                     )}
                   </div>
                 </div>
