@@ -7922,7 +7922,7 @@ const SalesStatisticOne = () => {
                         <th>From Member</th>
                         <th>Referral Name</th>
                         <th>Referral Status</th>
-                        <th>Category</th>
+                        {/* <th>Category</th>   */}
                         <th>Status</th>
                         <th>Phone Number</th>
                         <th>Address</th>
@@ -7964,6 +7964,11 @@ const SalesStatisticOne = () => {
                                   className="form-select form-select-sm"
                                   value={item.statusLog?.status || item.referalStatus || ""}
                                   onChange={(e) => handleReferralStatusChange(e.target.value, item)}
+                                  disabled={
+  item.statusLog?.status === "Not Required" ||
+  item.statusLog?.status === "Contacted" ||
+  item.statusLog?.status === "Business Closed"
+}
                                 >
                                   <option value="">Select</option>
                                   <option value="Not Required">Not Required</option>
@@ -7973,7 +7978,7 @@ const SalesStatisticOne = () => {
                               </td>
 
 
-                              <td>{referralDetail.category || "-"}</td>
+                              {/* <td>{referralDetail.category || "-"}</td> */}
                               <td>{item.referalStatus || "-"}</td>
                               <td>{referralDetail.mobileNumber || "-"}</td>
                               <td>{referralDetail.address || "-"}</td>
