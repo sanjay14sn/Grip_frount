@@ -498,6 +498,172 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
+        async getMembersAttendanceCount() {
+        try {
+            const response = await apiClient.post('/members/meetings-attendance-count',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch attendance counts:", response.data?.message ?? "Something went wrong");
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching attendance counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+    // memberApiProvider.ts
+    async getOneToOneCounts() {
+        try {
+            const response = await apiClient.post('/members/one-to-one-count', {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch one-to-one counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching one-to-one counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+    async getOneToOneGivenCounts() {
+        try {
+            const response = await apiClient.post('/members/one-to-one-given-count',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch one-to-one counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching one-to-one counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+
+    async getReferralCounts() {
+        try {
+            const response = await apiClient.post('/members/referral-count',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch referral counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching referral counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+    async getReferralGivenCounts() {
+        try {
+            const response = await apiClient.post('/members/referral-given-count',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch referral counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching referral counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+    async getThankYouSlipAmounts() {
+        try {
+            const response = await apiClient.post('/members/thank-you-slip-amounts',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch ThankYouSlip amounts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching ThankYouSlip amounts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+    // memberApiProvider.ts
+    async getVisitorCounts() {
+        try {
+            const response = await apiClient.post('/members/visitor-count',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch visitor counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching visitor counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+        async getVisitorReportCounts() {
+        try {
+            const response = await apiClient.post('/members/visitor-report-count',  {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch visitor counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching visitor counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
+    // memberApiProvider.ts
+    async getTestimonialCounts() {
+        try {
+            const response = await apiClient.post('/members/testimonial-counts', {
+                memberIds:"fromUser",
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                return { success: true, data: response.data.data };
+            } else {
+                console.error("Failed to fetch testimonial counts:", response.data?.message);
+                return { success: false, data: {} };
+            }
+        } catch (error) {
+            console.error("Error fetching testimonial counts:", error);
+            return { success: false, data: {} };
+        }
+    }
+
 }
 const formApiProvider = new FormApiProvider()
 export default formApiProvider

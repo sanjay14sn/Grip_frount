@@ -87,7 +87,6 @@ const SalesStatisticOne = () => {
     useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
-  const [testimonialReceivedList, setTestimonialReceivedList] = useState([]);
 
   const [showTestimonialReceivedPopup, setShowTestimonialReceivedPopup] =
     useState(false);
@@ -151,6 +150,8 @@ const SalesStatisticOne = () => {
   const [chapter, setChapter] = useState([]);
   const [globalMembers, setGlobalMembers] = useState([]);
   const [member, setMember] = useState([]);
+  const [upcomingMeetings, setupcomingMeetings] = useState([]);
+  const [upcomingTrainings, setupcomingTrainings] = useState([]);
 
   // Sample data - in a real app, this would come from an API
   const [chapterList, setChapterList] = useState([]);
@@ -196,6 +197,66 @@ const SalesStatisticOne = () => {
       console.log(userData, "testwert");
     }
   }, []);
+
+  // ---------------- STATE ----------------
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
+
+
+  const [attendanceCounts, setAttendanceCounts] = useState({});
+  const [oneToOneCounts, setOneToOneCounts] = useState({});
+  const [referralCounts, setReferralCounts] = useState({});
+  const [thankYouAmounts, setThankYouAmounts] = useState({});
+  const [visitorCounts, setVisitorCounts] = useState({});
+
+  const [testimonialCounts, setTestimonialCounts] = useState({});
+
+
+  const paginatedMembers = userData ? [userData] : [];
+
+  // ---------------- USE EFFECT ----------------
+  useEffect(() => {
+    fetchMembersWithAttendance()
+  }, []);
+
+
+  // ---------------- MAIN FUNCTION ----------------
+  const fetchMembersWithAttendance = async () => {
+    try {
+
+
+      const [
+        attendanceRes,
+        oneToOneRes,
+        referralRes,
+        thankYouRes,
+        visitorRes,
+        testimonialRes,
+      ] = await Promise.all([
+        formApiProvider.getMembersAttendanceCount(),
+        formApiProvider.getOneToOneCounts(),
+        formApiProvider.getReferralCounts(),
+        formApiProvider.getThankYouSlipAmounts(),
+        formApiProvider.getVisitorCounts(),
+        formApiProvider.getTestimonialCounts(),
+      ]);
+
+      if (attendanceRes?.success) setAttendanceCounts(attendanceRes.data);
+      if (oneToOneRes?.success) setOneToOneCounts(oneToOneRes.data);
+      if (referralRes?.success) setReferralCounts(referralRes.data);
+      if (thankYouRes?.success) setThankYouAmounts(thankYouRes.data);
+      if (visitorRes?.success) setVisitorCounts(visitorRes.data);
+      if (testimonialRes?.success) setTestimonialCounts(testimonialRes.data);
+
+
+    } catch (error) {
+      console.error("Error fetching members and PALMS data:", error);
+    }
+  };
 
   const getMemberById = async (userData) => {
     const responceResult = await loginApiProvider.getMemberById(userData?.id);
@@ -1104,8 +1165,20 @@ const SalesStatisticOne = () => {
       try {
         const result = await registerApiProvider.getUpcomingEvents();
         console.log(result.response.data, "result events");
+        const events = result?.response?.data || [];
+
+        // 🔥 Split based on purpose
+        const meetings = events.filter(e => e.purpose === "meeting");
+        const trainings = events.filter(e => e.purpose === "training");
+        const plainEvents = events.filter(e => e.purpose === "event");
+
+        // Save to stat
+        setupcomingMeetings(meetings);
+        setupcomingTrainings(trainings);
+        setupcomingEvents(plainEvents);
+
+        console.log({ meetings, trainings, plainEvents });
         // Set the data to state if needed:
-        setupcomingEvents(result?.response?.data);
       } catch (error) {
         console.error("Error fetching events:", error);
         // Handle error (e.g., show error message)
@@ -2223,8 +2296,8 @@ const SalesStatisticOne = () => {
                           </h6>
                           <button
                             className={`text-xs fw-medium px-3 border-0 ${event.paid
-                                ? "text-success-600 bg-success-100"
-                                : "text-danger-600 bg-danger-100"
+                              ? "text-success-600 bg-success-100"
+                              : "text-danger-600 bg-danger-100"
                               }`}
                             style={{
                               padding: "2px 7px",
@@ -2251,8 +2324,8 @@ const SalesStatisticOne = () => {
         {/* row gy-4 */}
       </div>{" "}
       {/* col-xxl-12 col-xl-12 */}
-      <div className="col-xxl-5 col-xl-5">
-        <div className="card h-100 radius-8 border-0 overflow-hidden">
+      <div className="col-xxl-6 col-xl-6">
+        <div className="card h-100 radius-8  overflow-hidden">
           <div className="card-body p-24">
             <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between ">
               <div>
@@ -2315,8 +2388,12 @@ const SalesStatisticOne = () => {
         </div>
       </div>
       {/* carousel slider component added */}
-      <div className="col-xxl-7 col-xl-7">
-        <div className="card h-100 border-0 shadow-none">
+      <div className="col-xxl-6 col-xl-6">
+        <div className="card h-100 radius-8 overflow-hidden">
+          {/* Add padding here */}
+          <div className="p-3">
+            <h3 className="mb-2 fw-bold text-xl">TOP PERFORMER OF THE MONTH</h3>
+          </div>
           <div
             className="card-body p-2 d-flex justify-content-center"
             style={{
@@ -2328,128 +2405,282 @@ const SalesStatisticOne = () => {
           >
             <div style={{ width: "100%", maxWidth: "500px" }}>
               <AchieverCarousel topAchivers={topAchivers} />
-              {/* 💡 Show loader when data is fetching */}
-              {/* {!topAchivers ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "20px",
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    color: "#555",
-                  }}
-                >
-                  Top Achievers details loading...
-                </div>
-              ) : (
-                <AchieverCarousel topAchivers={topAchivers} />
-              )} */}
             </div>
           </div>
         </div>
       </div>
-      <div className="col-xxl-7 col-xl-7" style={{ overFlow: "scroll" }}>
-        <div className="card h-100">
-          <div className="card-body">
-            <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between mb-20">
-              <h6 className="mb-2 fw-bold text-xl mb-0">Upcoming Events</h6>
-            </div>
-            <div
-              className="d-flex overflow-auto align-items-stretch py-2"
-              style={{
-                gap: "1rem",
-                scrollbarWidth: "none", // Firefox
-                msOverflowStyle: "none", // IE/Edge
-                "&::-webkit-scrollbar": {
-                  // Chrome/Safari
-                  display: "none",
-                },
-              }}
-            >
-              {upcomingEvents?.map((event, index) => (
-                <div
-                  key={event.id || index}
-                  className="flex-shrink-0"
-                  style={{
-                    width: "250px",
-                    backgroundColor: "#ffe3e3",
-                    minHeight: "300px", // Added min-height for consistency
-                  }}
-                >
+
+      {/* Row 1 → Meetings + Trainings */}
+      <div className="row">
+
+        {/* Upcoming Meetings */}
+        <div className="col-xxl-6 col-xl-6 col-lg-6 mb-5">
+          <div className="card h-100">
+            <div className="card-body ">
+              <h6 className="mb-3 fw-bold text-xl">Upcoming Meetings</h6>
+
+              <div
+                className="d-flex overflow-auto align-items-stretch py-2"
+                style={{ gap: "1rem", scrollbarWidth: "none" }}
+              >
+                {upcomingMeetings?.map((event, index) => (
                   <div
-                    className="border rounded p-3 h-100 d-flex flex-column"
+                    key={event._id || index}
+                    className="flex-shrink-0"
                     style={{
-                      borderColor: "gray !important",
-                      height: "100%",
+                      width: "250px",
+                      backgroundColor: "#ffe3e3",
+                      minHeight: "300px",
                     }}
                   >
-                    <div className="overflow-hidden flex-grow-1">
+                    <div className="border rounded p-3 h-100 d-flex flex-column">
                       <img
                         src={
                           event.image
                             ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
-                            : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg?s=612x612&w=0&k=20&c=gWTTDs_Hl6AEGOunoQ2LsjrcTJkknf9G8BGqsywyEtE="
+                            : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg?s=612x612"
                         }
-                        alt={event.productName || "Product image"}
+                        alt="Event"
                         style={{
                           width: "100%",
-                          height: "auto",
+                          height: "200px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                        }}
+                      />
+
+                      <div className="mt-2 small">
+                        <p><strong>Topic:</strong> {event.topic}</p>
+                        <p><strong>Hotel Name:</strong> {event.hotelName}</p>
+                        <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
+                        <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Upcoming Trainings */}
+        <div className="col-xxl-6 col-xl-6 col-lg-6 mb-5">
+          <div className="card h-100">
+            <div className="card-body p-4">  {/* Padding added */}
+              <h6 className="mb-3 fw-bold text-xl">Upcoming Trainings</h6>
+
+              <div
+                className="d-flex overflow-auto align-items-stretch py-2"
+                style={{ gap: "1rem", scrollbarWidth: "none" }}
+              >
+                {upcomingTrainings?.map((event, index) => (
+                  <div
+                    key={event._id || index}
+                    className="flex-shrink-0"
+                    style={{
+                      width: "250px",
+                      backgroundColor: "#ffe3e3",
+                      minHeight: "300px",
+                    }}
+                  >
+                    <div className="border rounded p-3 h-100 d-flex flex-column">
+
+                      <div className="overflow-hidden flex-grow-1">
+                        <img
+                          src={
+                            event.image
+                              ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
+                              : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
+                          }
+                          style={{
+                            width: "100%",
+                            maxHeight: "200px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                          }}
+                        />
+                      </div>
+
+                      <div className="mt-2 small">
+                        <p><strong>Topic:</strong> {event.topic}</p>
+                        <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
+                        <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+
+                        {event.trainingType && (
+                          <p><strong>Training Type:</strong> {event.trainingType}</p>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      {/* Row 2 → Events */}
+      <div className="row mt-4">
+        <div className="col-12">
+          <div className="card h-100">
+            <div className="card-body">
+              <h6 className="mb-3 fw-bold text-xl">Upcoming Events</h6>
+
+              <div
+                className="d-flex overflow-auto align-items-stretch py-2"
+                style={{ gap: "1rem", scrollbarWidth: "none" }}
+              >
+                {upcomingEvents?.map((event, index) => (
+                  <div
+                    key={event._id || index}
+                    className="flex-shrink-0"
+                    style={{
+                      width: "250px",
+                      backgroundColor: "#ffe3e3",
+                      minHeight: "300px",
+                    }}
+                  >
+                    <div className="border rounded p-3 h-100 d-flex flex-column">
+
+                      <img
+                        src={
+                          event.image
+                            ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
+                            : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
+                        }
+                        style={{
+                          width: "100%",
                           maxHeight: "200px",
                           objectFit: "cover",
                           borderRadius: "8px",
-                          backgroundColor: "#f5f5f5",
-                        }}
-                        onError={(e) => {
-                          e.target.src = "";
-                          e.target.style.objectFit = "contain";
-                          e.target.style.padding = "10px";
                         }}
                       />
-                    </div>
-                    <div className="mt-2 small">
-                      <p className="m-0">
-                        <strong>Topic: </strong>
-                        {event.topic || "No topic"}
-                      </p>
-                      {/* ✅ Added Hotel Name */}
-                      <p className="m-0">
-                        <strong>Hotel Name: </strong>
-                        {event.hotelName || "No hotel name"}
-                      </p>
-                      <p className="m-0">
-                        <strong>Start: </strong>
-                        {event.startDate
-                          ? new Date(event.startDate).toLocaleString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })
-                          : "Date not set"}
-                      </p>
-                      <p className="m-0">
-                        <strong>End: </strong>
-                        {event.endDate
-                          ? new Date(event.endDate).toLocaleString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })
-                          : "Date not set"}
-                      </p>
+
+                      <div className="mt-2 small">
+                        <p><strong>Topic:</strong> {event.topic}</p>
+
+                        {event.hotelName && (
+                          <p><strong>Hotel Name:</strong> {event.hotelName}</p>
+                        )}
+
+                        <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
+                        <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                      </div>
+
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
             </div>
           </div>
+        </div>
+      </div>
+      {/* PALMS REPORT */}
+      <div className="card h-100 p-0 radius-12">
+        <div className="card-header border-bottom bg-base py-16 px-24">
+          <h6 className="text-lg fw-semibold mb-0">PALMS Report</h6>
+        </div>
+
+        <div className="card-body chapterwisebox p-24">
+          {paginatedMembers?.length > 0 ? (
+            <>
+              {/* TABLE */}
+              <div className="table-responsive" style={{ overflowX: "auto" }}>
+                <table className="table table-bordered align-middle">
+                  <thead className="bg-light">
+                    <tr>
+                      <th>S.NO</th>
+                      <th>Meetings</th>
+                      <th>P</th>
+                      <th>A</th>
+                      <th>L</th>
+                      <th>M</th>
+                      <th>S</th>
+                      <th>Events</th>      {/* NEW */}
+                      <th>Training</th>    {/* NEW */}
+                      <th>One-to-One</th>
+                      <th>Referral Given</th>
+                      <th>Referral Received</th>
+                      <th>ThankYou Given</th>
+                      <th>ThankYou Received</th>
+                      <th>Visitors</th>
+                      <th>Testimonial Given</th>
+                      <th>Testimonial Received</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {paginatedMembers.map((member, index) => {
+                      const defaultCounts = {
+                        present: 0,
+                        absent: 0,
+                        late: 0,
+                        managed: 0,
+                        substitute: 0,
+                      };
+
+                      const meetings = attendanceCounts?.[member._id]?.meeting || defaultCounts;
+                      const events = attendanceCounts?.[member._id]?.event || defaultCounts;
+                      const training = attendanceCounts?.[member._id]?.training || defaultCounts;
+
+                      const totalMeetings =
+                        meetings.present +
+                        meetings.absent +
+                        meetings.late +
+                        meetings.managed +
+                        meetings.substitute;
+
+                      const totalEvents =
+                        events.present +
+                        events.absent +
+                        events.late +
+                        events.managed +
+                        events.substitute;
+
+                      const totalTraining =
+                        training.present +
+                        training.absent +
+                        training.late +
+                        training.managed +
+                        training.substitute;
+
+                      return (
+                        <tr key={member._id}>
+                          <td>{index + 1}</td>
+                          <td>{totalMeetings}</td>
+                          <td>{meetings.present}</td>
+                          <td>{meetings.absent}</td>
+                          <td>{meetings.late}</td>
+                          <td>{meetings.managed}</td>
+                          <td>{meetings.substitute}</td>
+
+                          <td>{totalEvents}</td>
+                          <td>{totalTraining}</td>
+
+                          <td>{oneToOneCounts[member._id]?.fromCount || 0}</td>
+                          <td>{referralCounts[member._id]?.given || 0}</td>
+                          <td>{referralCounts[member._id]?.received || 0}</td>
+                          <td>{thankYouAmounts[member._id]?.given || 0}</td>
+                          <td>{thankYouAmounts[member._id]?.received || 0}</td>
+                          <td>{visitorCounts[member._id] || 0}</td>
+                          <td>{testimonialCounts[member._id]?.given || 0}</td>
+                          <td>{testimonialCounts[member._id]?.received || 0}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <p>No PALMS report found.</p>
+          )}
         </div>
       </div>
       {/* onoe to one submit model */}
@@ -7731,7 +7962,7 @@ const SalesStatisticOne = () => {
                               <td>
                                 <select
                                   className="form-select form-select-sm"
-                                   value={item.statusLog?.status || item.referalStatus || ""}
+                                  value={item.statusLog?.status || item.referalStatus || ""}
                                   onChange={(e) => handleReferralStatusChange(e.target.value, item)}
                                 >
                                   <option value="">Select</option>
@@ -7883,8 +8114,8 @@ const SalesStatisticOne = () => {
                             <td>
                               <button
                                 className={`d-inline-block ${event.paid
-                                    ? "bg-success-100 text-success-600"
-                                    : "bg-danger-100 text-danger-600"
+                                  ? "bg-success-100 text-success-600"
+                                  : "bg-danger-100 text-danger-600"
                                   }`}
                                 style={{
                                   border: "none",
