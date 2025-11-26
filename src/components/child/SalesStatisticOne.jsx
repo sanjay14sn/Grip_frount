@@ -16,7 +16,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import AchieverCarousel from "../../components/TopAchieversCarousel";
 import ReferralApiProvider from "../../services/referralApi";
 
-
 // import socketProvider from '../../services/socketProvider';
 
 const SalesStatisticOne = () => {
@@ -65,7 +64,6 @@ const SalesStatisticOne = () => {
   const [profilePercentage, setprofilePercentage] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-
   //
   // const [refGiven, setRefGiven] = useState([]);
   // const [loading, setLoading] = useState(false);
@@ -89,11 +87,12 @@ const SalesStatisticOne = () => {
     useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
-
   const [showTestimonialReceivedPopup, setShowTestimonialReceivedPopup] =
     useState(false);
   // State for Visitor Popup
   const [showVisitorPopup, setShowVisitorPopup] = useState(false);
+  const [showExpectedVisitorPopup, setShowExpectedVisitorPopup] =
+    useState(false); // expected visitors state
   const [showThankYouPopup, setShowThankYouPopup] = useState(false);
   const [showOneToOnePopup, setShowOneToOnePopup] = useState(false);
 
@@ -208,7 +207,6 @@ const SalesStatisticOne = () => {
     totalPages: 1,
   });
 
-
   const [attendanceCounts, setAttendanceCounts] = useState({});
   const [oneToOneCounts, setOneToOneCounts] = useState({});
   const [referralCounts, setReferralCounts] = useState({});
@@ -217,20 +215,16 @@ const SalesStatisticOne = () => {
 
   const [testimonialCounts, setTestimonialCounts] = useState({});
 
-
   const paginatedMembers = userData ? [userData] : [];
 
   // ---------------- USE EFFECT ----------------
   useEffect(() => {
-    fetchMembersWithAttendance()
+    fetchMembersWithAttendance();
   }, []);
-
 
   // ---------------- MAIN FUNCTION ----------------
   const fetchMembersWithAttendance = async () => {
     try {
-
-
       const [
         attendanceRes,
         oneToOneRes,
@@ -253,8 +247,6 @@ const SalesStatisticOne = () => {
       if (thankYouRes?.success) setThankYouAmounts(thankYouRes.data);
       if (visitorRes?.success) setVisitorCounts(visitorRes.data);
       if (testimonialRes?.success) setTestimonialCounts(testimonialRes.data);
-
-
     } catch (error) {
       console.error("Error fetching members and PALMS data:", error);
     }
@@ -819,13 +811,12 @@ const SalesStatisticOne = () => {
         referralStatus: "Business Closed",
         referralId: selectedReferral?._id,
         referralName: selectedReferral?.referalDetail?.name,
-      })
+      }),
     };
 
     const result = await formApiProvider.submitThankyouSlip(payload);
 
     if (result && result.status) {
-
       // BUSINESS CLOSED FLOW → SHOW TOAST
       if (isBusinessClosed) {
         toast.success("Business Closed updated & mail sent successfully!");
@@ -855,12 +846,10 @@ const SalesStatisticOne = () => {
 
       // REFRESH COUNTS
       getDashboardCounts(selectedFilter);
-
     } else {
       toast.error(result.response?.message || "Failed to submit");
     }
   };
-
 
   const handlePrint = () => {
     const content = document.getElementById("printable-area");
@@ -908,10 +897,6 @@ const SalesStatisticOne = () => {
     fetchZones();
   }, []);
 
-
-
-
-
   const fetchZones = async () => {
     try {
       const result = await registerApiProvider.getAllZones();
@@ -924,9 +909,7 @@ const SalesStatisticOne = () => {
     }
   };
 
-
   function useChapterDateFilter(chapterList, userData) {
-
     const [allowedDates, setAllowedDates] = useState([]);
     useEffect(() => {
       if (!chapterList || !userData?.chapterInfo?.chapterId?.chapterName) {
@@ -936,9 +919,7 @@ const SalesStatisticOne = () => {
 
       const chapterName = userData.chapterInfo.chapterId.chapterName;
 
-      const chapter = chapterList.find(
-        (c) => c.chapterName === chapterName
-      );
+      const chapter = chapterList.find((c) => c.chapterName === chapterName);
 
       if (!chapter || !chapter.weekday) {
         setAllowedDates([]);
@@ -979,9 +960,6 @@ const SalesStatisticOne = () => {
 
     return allowedDates;
   }
-
-
-
 
   useEffect(() => {
     const modalEl = document.getElementById("searchResultModal");
@@ -1108,8 +1086,9 @@ const SalesStatisticOne = () => {
         return {
           id: ival._id || `unknown_${ival.id}`, // Fallback ID if missing
           name:
-            `${personalDetails.firstName || ""} ${personalDetails.lastName || ""
-              }`.trim() || "Unnamed Member",
+            `${personalDetails.firstName || ""} ${
+              personalDetails.lastName || ""
+            }`.trim() || "Unnamed Member",
         };
       });
       console.log(data, "data");
@@ -1233,9 +1212,9 @@ const SalesStatisticOne = () => {
         const events = result?.response?.data || [];
 
         // 🔥 Split based on purpose
-        const meetings = events.filter(e => e.purpose === "meeting");
-        const trainings = events.filter(e => e.purpose === "training");
-        const plainEvents = events.filter(e => e.purpose === "event");
+        const meetings = events.filter((e) => e.purpose === "meeting");
+        const trainings = events.filter((e) => e.purpose === "training");
+        const plainEvents = events.filter((e) => e.purpose === "event");
 
         // Save to stat
         setupcomingMeetings(meetings);
@@ -1663,6 +1642,52 @@ const SalesStatisticOne = () => {
       setShowVisitorPopup(true);
     }
   };
+
+  //expected visitors
+  const handleExpectedVisitorDatas = async (member) => {
+    if (!member?._id) return;
+
+    setSelectedMember(member);
+
+    try {
+      // 1. Login
+      const loginRes = await fetch(
+        "https://api.gripforum.com/api/mobile/member-login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mobileNumber: "9890989098",
+            pin: "5577",
+          }),
+        }
+      );
+
+      const loginData = await loginRes.json();
+      const token = loginData.token;
+      if (!token) throw new Error("Login failed");
+
+      // 2. Fetch expected visitors of this member
+      const res = await fetch(
+        // `https://api.gripforum.com/api/mobile/expectedVisitors/list/${member._id}`,
+        `http://localhost:4002/api/mobile/expectedVisitors/list/${member._id} `,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = await res.json();
+
+      // 3. Ensure array
+      const visitors = Array.isArray(data.data) ? data.data : [];
+
+      setExpectedVisitorsDatas(visitors);
+      setShowExpectedVisitorPopup(true);
+    } catch (err) {
+      console.error("Expected visitors fetch failed:", err);
+      setExpectedVisitorsDatas([]);
+      setShowExpectedVisitorPopup(true);
+    }
+  };
+
   // thankugiven
   const handleThankYouDatas = async (member) => {
     if (!member?._id) return;
@@ -1746,11 +1771,9 @@ const SalesStatisticOne = () => {
     }
   };
 
-
-
   const updateReferralStatusInState = (id, newStatus) => {
-    setReferalReceivedDatas(prev =>
-      prev.map(item =>
+    setReferalReceivedDatas((prev) =>
+      prev.map((item) =>
         item._id === id ? { ...item, referalStatus: newStatus } : item
       )
     );
@@ -1762,16 +1785,20 @@ const SalesStatisticOne = () => {
 
     // 1️⃣ Business Closed → open Thank You modal
     if (status === "Business Closed") {
-      setSelectedReferral(item);   // <-- IMPORTANT: SAVE REFERRAL FOR SUBMIT
+      setSelectedReferral(item); // <-- IMPORTANT: SAVE REFERRAL FOR SUBMIT
 
-      const referralModalEl = document.getElementById("referralreceiveReportModal");
+      const referralModalEl = document.getElementById(
+        "referralreceiveReportModal"
+      );
       const referralModal = Modal.getInstance(referralModalEl);
       if (referralModal) referralModal.hide();
 
       referralModalEl.addEventListener(
         "hidden.bs.modal",
         () => {
-          document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+          document
+            .querySelectorAll(".modal-backdrop")
+            .forEach((el) => el.remove());
           document.body.classList.remove("modal-open");
           document.body.style.overflow = "";
           document.body.style.paddingRight = "";
@@ -1813,28 +1840,32 @@ const SalesStatisticOne = () => {
       };
 
       try {
-        const apiRes = await ReferralApiProvider.sendReferralStatusMail(payload);
+        const apiRes = await ReferralApiProvider.sendReferralStatusMail(
+          payload
+        );
 
         if (apiRes.status) {
           toast.success(apiRes.response.message ?? "Mail sent!");
 
           // Close modal after success
-          const referralModalEl = document.getElementById("referralreceiveReportModal");
+          const referralModalEl = document.getElementById(
+            "referralreceiveReportModal"
+          );
           const referralModal = Modal.getInstance(referralModalEl);
 
           if (referralModal) referralModal.hide();
 
           setTimeout(() => {
-            document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+            document
+              .querySelectorAll(".modal-backdrop")
+              .forEach((el) => el.remove());
             document.body.classList.remove("modal-open");
             document.body.style.overflow = "";
             document.body.style.paddingRight = "";
           }, 300);
-
         } else {
           toast.error(apiRes.response?.message ?? "Mail failed");
         }
-
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong.");
@@ -1842,10 +1873,7 @@ const SalesStatisticOne = () => {
     }
   };
 
-
-
   const allowedDates = useChapterDateFilter(chapterList, userData);
-
 
   return (
     <>
@@ -1862,7 +1890,6 @@ const SalesStatisticOne = () => {
           </div>
 
           <div className="firstpartt d-flex align-items-center flex-wrap gap-2">
-
             {/* ⭐ PINS BUTTON — MOVED TO THE FIRST POSITION */}
             <Link
               to=""
@@ -1952,9 +1979,9 @@ const SalesStatisticOne = () => {
               Renewal Due Date:
               <br />
               {userData?.personalDetails?.renewalDate
-                ? new Date(userData.personalDetails.renewalDate).toLocaleDateString(
-                  "en-GB"
-                )
+                ? new Date(
+                    userData.personalDetails.renewalDate
+                  ).toLocaleDateString("en-GB")
                 : ""}
             </Link>
           </div>
@@ -1969,9 +1996,10 @@ const SalesStatisticOne = () => {
           >
             <div className="modal-dialog modal-dialog-centered modal-lg">
               <div className="modal-content">
-
                 <div className="modal-header">
-                  <h5 className="modal-title" id="pinsModalLabel">Your Pins</h5>
+                  <h5 className="modal-title" id="pinsModalLabel">
+                    Your Pins
+                  </h5>
                   <button
                     type="button"
                     className="btn-close"
@@ -1983,9 +2011,11 @@ const SalesStatisticOne = () => {
                 <div className="modal-body">
                   {userData?.personalDetails?.pins?.length > 0 ? (
                     <div className="row g-3">
-
                       {userData.personalDetails.pins.map((pin) => (
-                        <div key={pin._id} className="col-6 col-md-4 text-center">
+                        <div
+                          key={pin._id}
+                          className="col-6 col-md-4 text-center"
+                        >
                           <div
                             className="p-3 border rounded"
                             style={{ borderRadius: "12px" }}
@@ -2004,13 +2034,11 @@ const SalesStatisticOne = () => {
                           </div>
                         </div>
                       ))}
-
                     </div>
                   ) : (
                     <p className="text-center">No Pins Found</p>
                   )}
                 </div>
-
               </div>
             </div>
           </div>
@@ -2346,13 +2374,13 @@ const SalesStatisticOne = () => {
                           <span className="text-xs text-secondary-light fw-medium">
                             {event.date
                               ? new Date(event.date).toLocaleDateString(
-                                "en-US",
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                }
-                              )
+                                  "en-US",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  }
+                                )
                               : "Date not specified"}
                           </span>
                         </div>
@@ -2361,10 +2389,11 @@ const SalesStatisticOne = () => {
                             ₹{event.amount || "1000"}
                           </h6>
                           <button
-                            className={`text-xs fw-medium px-3 border-0 ${event.paid
-                              ? "text-success-600 bg-success-100"
-                              : "text-danger-600 bg-danger-100"
-                              }`}
+                            className={`text-xs fw-medium px-3 border-0 ${
+                              event.paid
+                                ? "text-success-600 bg-success-100"
+                                : "text-danger-600 bg-danger-100"
+                            }`}
                             style={{
                               padding: "2px 7px",
                               borderRadius: "4px",
@@ -2372,7 +2401,7 @@ const SalesStatisticOne = () => {
                             }}
                             data-bs-toggle="modal"
                             data-bs-target="#paymentDetails"
-                          // onClick={() => handlePayment(event.id)}
+                            // onClick={() => handlePayment(event.id)}
                           >
                             {event.paid ? "Paid" : "Pay Now"}
                           </button>
@@ -2475,10 +2504,8 @@ const SalesStatisticOne = () => {
           </div>
         </div>
       </div>
-
       {/* Row 1 → Meetings + Trainings */}
       <div className="row">
-
         {/* Upcoming Meetings */}
         <div className="col-xxl-6 col-xl-6 col-lg-6 mb-5">
           <div className="card h-100">
@@ -2501,7 +2528,7 @@ const SalesStatisticOne = () => {
                     style={{
                       width: "250px",
                       backgroundColor: "#ffe3e3",
-                      minHeight: "300px"
+                      minHeight: "300px",
                     }}
                   >
                     <div className="border rounded p-3 h-100 d-flex flex-column">
@@ -2516,21 +2543,30 @@ const SalesStatisticOne = () => {
                           width: "100%",
                           height: "200px",
                           objectFit: "cover",
-                          borderRadius: "8px"
+                          borderRadius: "8px",
                         }}
                       />
 
                       <div className="mt-2 small">
-                        <p><strong>Topic:</strong> {event.topic}</p>
-                        <p><strong>Hotel Name:</strong> {event.hotelName}</p>
-                        <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
-                        <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                        <p>
+                          <strong>Topic:</strong> {event.topic}
+                        </p>
+                        <p>
+                          <strong>Hotel Name:</strong> {event.hotelName}
+                        </p>
+                        <p>
+                          <strong>Start:</strong>{" "}
+                          {new Date(event.startDate).toLocaleString()}
+                        </p>
+                        <p>
+                          <strong>End:</strong>{" "}
+                          {new Date(event.endDate).toLocaleString()}
+                        </p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-
             </div>
           </div>
         </div>
@@ -2557,11 +2593,10 @@ const SalesStatisticOne = () => {
                     style={{
                       width: "250px",
                       backgroundColor: "#ffe3e3",
-                      minHeight: "300px"
+                      minHeight: "300px",
                     }}
                   >
                     <div className="border rounded p-3 h-100 d-flex flex-column">
-
                       <div className="overflow-hidden flex-grow-1">
                         <img
                           src={
@@ -2573,32 +2608,39 @@ const SalesStatisticOne = () => {
                             width: "100%",
                             maxHeight: "200px",
                             objectFit: "cover",
-                            borderRadius: "8px"
+                            borderRadius: "8px",
                           }}
                         />
                       </div>
 
                       <div className="mt-2 small">
-                        <p><strong>Topic:</strong> {event.topic}</p>
-                        <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
-                        <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                        <p>
+                          <strong>Topic:</strong> {event.topic}
+                        </p>
+                        <p>
+                          <strong>Start:</strong>{" "}
+                          {new Date(event.startDate).toLocaleString()}
+                        </p>
+                        <p>
+                          <strong>End:</strong>{" "}
+                          {new Date(event.endDate).toLocaleString()}
+                        </p>
 
                         {event.trainingType && (
-                          <p><strong>Training Type:</strong> {event?.trainingType || "entire_day"}</p>
+                          <p>
+                            <strong>Training Type:</strong>{" "}
+                            {event?.trainingType || "entire_day"}
+                          </p>
                         )}
                       </div>
-
                     </div>
                   </div>
                 ))}
               </div>
-
             </div>
           </div>
         </div>
-
       </div>
-
       {/* Row 2 → Events */}
       <div className="row mt-4">
         <div className="col-12">
@@ -2615,48 +2657,57 @@ const SalesStatisticOne = () => {
                   gap: "1rem",
                 }}
               >
-                {upcomingEvents?.filter(ev => ev && ev.topic)?.map((event, index) => (
-                  <div
-                    key={event._id || index}
-                    className="flex-shrink-0"
-                    style={{
-                      width: "250px",
-                      backgroundColor: "#ffe3e3",
-                      minHeight: "300px"
-                    }}
-                  >
-                    <div className="border rounded p-3 h-100 d-flex flex-column">
+                {upcomingEvents
+                  ?.filter((ev) => ev && ev.topic)
+                  ?.map((event, index) => (
+                    <div
+                      key={event._id || index}
+                      className="flex-shrink-0"
+                      style={{
+                        width: "250px",
+                        backgroundColor: "#ffe3e3",
+                        minHeight: "300px",
+                      }}
+                    >
+                      <div className="border rounded p-3 h-100 d-flex flex-column">
+                        <img
+                          src={
+                            event.image
+                              ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
+                              : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
+                          }
+                          style={{
+                            width: "100%",
+                            maxHeight: "200px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                          }}
+                        />
 
-                      <img
-                        src={
-                          event.image
-                            ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
-                            : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
-                        }
-                        style={{
-                          width: "100%",
-                          maxHeight: "200px",
-                          objectFit: "cover",
-                          borderRadius: "8px"
-                        }}
-                      />
+                        <div className="mt-2 small">
+                          <p>
+                            <strong>Topic:</strong> {event.topic}
+                          </p>
 
-                      <div className="mt-2 small">
-                        <p><strong>Topic:</strong> {event.topic}</p>
+                          {event.hotelName && (
+                            <p>
+                              <strong>Hotel Name:</strong> {event.hotelName}
+                            </p>
+                          )}
 
-                        {event.hotelName && (
-                          <p><strong>Hotel Name:</strong> {event.hotelName}</p>
-                        )}
-
-                        <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
-                        <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                          <p>
+                            <strong>Start:</strong>{" "}
+                            {new Date(event.startDate).toLocaleString()}
+                          </p>
+                          <p>
+                            <strong>End:</strong>{" "}
+                            {new Date(event.endDate).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
-
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
-
             </div>
           </div>
         </div>
@@ -2682,14 +2733,15 @@ const SalesStatisticOne = () => {
                       <th>L</th>
                       <th>M</th>
                       <th>S</th>
-                      <th>Events</th>      {/* NEW */}
-                      <th>Training</th>    {/* NEW */}
+                      <th>Events</th> {/* NEW */}
+                      <th>Training</th> {/* NEW */}
                       <th>One-to-One</th>
                       <th>Referral Given</th>
                       <th>Referral Received</th>
                       <th>ThankYou Given</th>
                       <th>ThankYou Received</th>
                       <th>Visitors</th>
+                      <th>Expected Visitors</th>
                       <th>Testimonial Given</th>
                       <th>Testimonial Received</th>
                     </tr>
@@ -2705,9 +2757,14 @@ const SalesStatisticOne = () => {
                         substitute: 0,
                       };
 
-                      const meetings = attendanceCounts?.[member._id]?.meeting || defaultCounts;
-                      const events = attendanceCounts?.[member._id]?.event || defaultCounts;
-                      const training = attendanceCounts?.[member._id]?.training || defaultCounts;
+                      const meetings =
+                        attendanceCounts?.[member._id]?.meeting ||
+                        defaultCounts;
+                      const events =
+                        attendanceCounts?.[member._id]?.event || defaultCounts;
+                      const training =
+                        attendanceCounts?.[member._id]?.training ||
+                        defaultCounts;
 
                       const totalMeetings =
                         meetings.present +
@@ -2750,7 +2807,9 @@ const SalesStatisticOne = () => {
                           <td>{thankYouAmounts[member._id]?.received || 0}</td>
                           <td>{visitorCounts[member._id] || 0}</td>
                           <td>{testimonialCounts[member._id]?.given || 0}</td>
-                          <td>{testimonialCounts[member._id]?.received || 0}</td>
+                          <td>
+                            {testimonialCounts[member._id]?.received || 0}
+                          </td>
                         </tr>
                       );
                     })}
@@ -3110,7 +3169,7 @@ const SalesStatisticOne = () => {
                         src={
                           selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                            selectedMember?.personalDetails?.profileImage?.docName
+                          selectedMember?.personalDetails?.profileImage?.docName
                             ? `${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`
                             : "assets/images/avatar/avatar.jpg"
                         }
@@ -3145,8 +3204,7 @@ const SalesStatisticOne = () => {
                       </span>
 
                       {/* Actions */}
-                      <div className="d-flex justify-content-around mb-4 flex-wrap text-center mt-3">
-                        {/* Referrals Given */}
+                      {/* <div className="d-flex justify-content-around mb-4 flex-wrap text-center mt-3">
                         <div className="d-flex flex-column align-items-center m-2">
                           <button
                             className="btn rounded-circle d-flex align-items-center justify-content-center"
@@ -3227,17 +3285,6 @@ const SalesStatisticOne = () => {
                             Testimonial Received
                           </small>
                         </div>
-                        {/* <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle"
-                            onClick={() =>
-                              handleTestimonialReceivedDatas(member)
-                            }
-                          >
-                            <i className="bi bi-chat-right-quote fs-3"></i>
-                          </button>
-                          <small>Test. Received</small>
-                        </div> */}
 
                         <div className="d-flex flex-column align-items-center m-2">
                           <button
@@ -3287,6 +3334,27 @@ const SalesStatisticOne = () => {
                                 "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
                               color: "white",
                             }}
+                            onClick={() =>
+                              handleExpectedVisitorDatas(selectedMember)
+                            }
+                          >
+                            <i className="bi bi-people fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Expected Visitors
+                          </small>
+                        </div>
+
+                        <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
                           >
                             <i className="bi bi-building fs-3"></i>
                           </button>
@@ -3307,6 +3375,221 @@ const SalesStatisticOne = () => {
                             }}
                             onClick={() => handleThankYouDatas(selectedMember)}
                           >
+                            <i className="bi bi-chat-text fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Thank You Notes Given
+                          </small>
+                        </div>
+                      </div> */}
+
+
+
+
+
+
+
+                      <div className="d-flex justify-content-around mb-4 flex-wrap text-center mt-3">
+
+  {/* Referrals Given */}
+  <div className="action-item m-2">
+      {/* Referrals Given */}
+                        <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() => handleRefGivenClick(selectedMember)}
+                          >
+                            <i className="bi bi-people fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Referrals Given
+                          </small>
+                        </div>
+  </div>
+
+  {/* Referrals Received */}
+  <div className="action-item m-2">
+       <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() =>
+                              handleRefReceivedClick(selectedMember)
+                            }
+                          >
+                            <i className="bi bi-person-plus fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Referrals Received
+                          </small>
+                        </div>
+  </div>
+
+  {/* Testimonial Given */}
+  <div className="action-item m-2">
+       <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() =>
+                              handleTestimonialGivenDatas(selectedMember)
+                            }
+                          >
+                            <i className="bi bi-chat-left-quote fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Testimonial Given
+                          </small>
+                        </div>
+  </div>
+
+  {/* Testimonial Received */}
+  <div className="action-item m-2">
+    <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() =>
+                              handleTestimonialReceivedDatas(selectedMember)
+                            }
+                          >
+                            <i className="bi bi-chat-dots fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Testimonial Received
+                          </small>
+                        </div>
+  </div>
+
+  {/* One-to-One */}
+  <div className="action-item m-2">
+            <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)", // red to maroon
+                              color: "white",
+                            }}
+                            onClick={() => handleOneToOneDatas(selectedMember)}
+                          >
+                            <i className="bi bi-people-fill fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            One-to-One
+                          </small>
+                        </div>
+  </div>
+
+  {/* Visitors */}
+  <div className="action-item m-2">
+         <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() => handleVisitorDatas(selectedMember)}
+                          >
+                            <i className="bi bi-eye fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Visitors
+                          </small>
+                        </div>
+  </div>
+
+  {/* Expected Visitors */}
+  <div className="action-item m-2">
+      <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() =>
+                              handleExpectedVisitorDatas(selectedMember)
+                            }
+                          >
+                            <i className="bi bi-people fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Expected Visitors
+                          </small>
+                        </div>
+  </div>
+
+  {/* Business */}
+  <div className="action-item m-2">
+
+                        <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                          >
+                            <i className="bi bi-building fs-3"></i>
+                          </button>
+                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                            Business
+                          </small>
+                        </div>
+  </div>
+
+  {/* Thank You Notes Given */}
+  <div className="action-item m-2">
+         <div className="d-flex flex-column align-items-center m-2">
+                          <button
+                            className="btn rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "70px",
+                              height: "70px",
+                              background:
+                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                              color: "white",
+                            }}
+                            onClick={() => handleThankYouDatas(selectedMember)}
+                          >
                             {/* Change icon to "bi-chat-text" for notes/messages */}
                             <i className="bi bi-chat-text fs-3"></i>
                           </button>
@@ -3314,7 +3597,36 @@ const SalesStatisticOne = () => {
                             Thank You Notes Given
                           </small>
                         </div>
-                      </div>
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                       {/* Business Description */}
                       <div className="mt-3">
@@ -3404,8 +3716,9 @@ const SalesStatisticOne = () => {
                   {/* Member List */}
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {memberList.map((member, idx) => {
-                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
-                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${
+                        member.personalDetails?.firstName?.charAt(0) || ""
+                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = member.personalDetails?.profileImage
                         ?.docPath
                         ? `${IMAGE_BASE_URL}/${member.personalDetails.profileImage.docPath}/${member.personalDetails.profileImage.docName}`
@@ -3860,8 +4173,9 @@ const SalesStatisticOne = () => {
       </div>
       {/* Testimonial Given Modal */}
       <div
-        className={`modal fade ${showTestimonialGivenPopup ? "show d-block" : ""
-          }`}
+        className={`modal fade ${
+          showTestimonialGivenPopup ? "show d-block" : ""
+        }`}
         tabIndex="-1"
       >
         <div
@@ -4038,8 +4352,9 @@ const SalesStatisticOne = () => {
       </div>
       {/* Testimonial received Modal */}
       <div
-        className={`modal ${showTestimonialReceivedPopup ? "d-block" : "d-none"
-          }`}
+        className={`modal ${
+          showTestimonialReceivedPopup ? "d-block" : "d-none"
+        }`}
         tabIndex="-1"
       >
         <div
@@ -4446,7 +4761,7 @@ const SalesStatisticOne = () => {
                       <button
                         className="btn btn-primary grip"
                         style={{ minWidth: "60px" }}
-                      // onClick={() => handleApplyDateFilter(visitorsDatas)}
+                        // onClick={() => handleApplyDateFilter(visitorsDatas)}
                       >
                         Go
                       </button>
@@ -4485,10 +4800,10 @@ const SalesStatisticOne = () => {
                           <tr className="text-xs">
                             <th>Visit Date</th>
                             <th>Name</th>
-                            <th>Company</th>
+                            {/* <th>Company</th> */}
                             <th>Category</th>
-                            <th>Mobile</th>
-                            <th>Email</th>
+                            {/* <th>Mobile</th> */}
+                            {/* <th>Email</th> */}
                             <th>Address</th>
                             <th>Invited By</th>
                           </tr>
@@ -4508,10 +4823,10 @@ const SalesStatisticOne = () => {
                                 <tr key={item._id}>
                                   <td>{formattedDate}</td>
                                   <td>{item.name}</td>
-                                  <td>{item.company}</td>
+                                  {/* <td>{item.company}</td> */}
                                   <td>{item.category}</td>
-                                  <td>{item.mobile}</td>
-                                  <td>{item.email}</td>
+                                  {/* <td>{item.mobile}</td> */}
+                                  {/* <td>{item.email}</td> */}
                                   <td>{item.address}</td>
                                   <td>{invitedByName}</td>
                                 </tr>
@@ -4536,6 +4851,184 @@ const SalesStatisticOne = () => {
                     type="button"
                     className="btn text-grip btn-outline-grip"
                     onClick={() => setShowVisitorPopup(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {/* {/*  expected Visitors  */}
+      {showExpectedVisitorPopup && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1040 }}
+            onClick={() => setShowExpectedVisitorPopup(false)}
+          ></div>
+
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            role="dialog"
+            style={{ zIndex: 2000 }}
+          >
+            <div
+              className="modal-dialog modal-xl modal-dialog-centered"
+              role="document"
+            >
+              <div className="modal-content radius-16 bg-base">
+                {/* Header */}
+                <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
+                  <h1 className="modal-title fs-5 text-danger">
+                    Chapter : Expected Visitor Report
+                  </h1>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowExpectedVisitorPopup(false)}
+                  ></button>
+                </div>
+
+                {/* Body */}
+                <div className="modal-body">
+                  {/* Date Filter */}
+                  <div className="d-flex flex-wrap align-items-end gap-3 mb-3">
+                    {/* Start Date */}
+                    <div
+                      className="flex-grow-1"
+                      style={{ minWidth: "120px", maxWidth: "200px" }}
+                    >
+                      <label className="form-label">
+                        Start Date <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        name="fromDate"
+                        value={dateRange.fromDate}
+                        onChange={handleDateRangeChange}
+                      />
+                    </div>
+
+                    {/* End Date */}
+                    <div
+                      className="flex-grow-1"
+                      style={{ minWidth: "120px", maxWidth: "200px" }}
+                    >
+                      <label className="form-label">
+                        End Date <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        name="toDate"
+                        value={dateRange.toDate}
+                        onChange={handleDateRangeChange}
+                      />
+                    </div>
+
+                    {/* Go Button */}
+                    <div>
+                      <button
+                        className="btn btn-primary grip"
+                        style={{ minWidth: "60px" }}
+                        onClick={() =>
+                          handleApplyDateFilter(getExpectedVisitorDatas)
+                        }
+                      >
+                        Go
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Selected Member Info */}
+                  <div className="reportdetailss overflow-x-auto">
+                    <div className="bg-danger-100 p-3 rounded d-flex justify-content-between align-items-center mb-3">
+                      <div>
+                        <strong>Selected Member:</strong>{" "}
+                        {selectedMember?.personalDetails?.firstName}{" "}
+                        {selectedMember?.personalDetails?.lastName} | Chapter:{" "}
+                        {selectedMember?.chapterInfo?.chapterId?.chapterName}
+                      </div>
+                      <div className="d-flex gap-2 mt-2 mt-md-0">
+                        <button
+                          className="btn text-white btn-sm"
+                          style={{ background: "#b30000" }}
+                        >
+                          Export
+                        </button>
+                        <button
+                          className="btn text-white btn-sm"
+                          style={{ background: "#b30000" }}
+                        >
+                          Print
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Expected Visitors Table */}
+                    <div className="table-responsive">
+                      <table className="table table-bordered table-striped">
+                        <thead className="table-danger grip">
+                          <tr className="text-xs">
+                            <th>Expected Date</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Address</th>
+                            <th>Invited By</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {expectedVisitorsDatas.length > 0 ? (
+                            expectedVisitorsDatas.map((item) => {
+                              const formattedDate = new Date(
+                                item.visitDate
+                              ).toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "2-digit",
+                              });
+
+                              const invitedByName = `${
+                                item.invitedBy?.personalDetails?.firstName || ""
+                              } ${
+                                item.invitedBy?.personalDetails?.lastName || ""
+                              }`;
+
+                              return (
+                                <tr key={item._id}>
+                                  <td>{formattedDate}</td>
+                                  <td>{item.name}</td>
+                                  <td>{item.category}</td>
+                                  <td>{item.address}</td>
+                                  <td>{invitedByName}</td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan="8" className="text-center">
+                                No expected visitors found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="modal-footer border-top-0">
+                  <button
+                    type="button"
+                    className="btn text-grip btn-outline-grip"
+                    onClick={() => setShowExpectedVisitorPopup(false)}
                   >
                     Close
                   </button>
@@ -4764,8 +5257,9 @@ const SalesStatisticOne = () => {
                     <div>
                       <strong>Ruuning Member: </strong>
                       {selectedMember?.personalDetails
-                        ? `${selectedMember.personalDetails.firstName || ""} ${selectedMember.personalDetails.lastName || ""
-                        }`
+                        ? `${selectedMember.personalDetails.firstName || ""} ${
+                            selectedMember.personalDetails.lastName || ""
+                          }`
                         : "N/A"}{" "}
                       | Chapter:{" "}
                       {selectedMember?.chapterInfo?.chapterId?.chapterName ||
@@ -4808,33 +5302,37 @@ const SalesStatisticOne = () => {
                             const formatDate = (date) =>
                               date
                                 ? new Date(date).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                })
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                  })
                                 : "N/A";
 
                             const toMemberName = item.toMember?.personalDetails
-                              ? `${item.toMember.personalDetails.firstName || ""
-                              } ${item.toMember.personalDetails.lastName || ""
-                              }`
+                              ? `${
+                                  item.toMember.personalDetails.firstName || ""
+                                } ${
+                                  item.toMember.personalDetails.lastName || ""
+                                }`
                               : "N/A";
 
                             const fromMemberName = item.fromMember
                               ?.personalDetails
-                              ? `${item.fromMember.personalDetails.firstName ||
-                              ""
-                              } ${item.fromMember.personalDetails.lastName || ""
-                              }`
+                              ? `${
+                                  item.fromMember.personalDetails.firstName ||
+                                  ""
+                                } ${
+                                  item.fromMember.personalDetails.lastName || ""
+                                }`
                               : "N/A";
 
                             const meetingLocation =
                               item.whereDidYouMeet === "commonlocation"
                                 ? "Common Location"
                                 : item.whereDidYouMeet
-                                  ? item.whereDidYouMeet.charAt(0).toUpperCase() +
+                                ? item.whereDidYouMeet.charAt(0).toUpperCase() +
                                   item.whereDidYouMeet.slice(1)
-                                  : "N/A";
+                                : "N/A";
 
                             return (
                               <tr key={item._id || Math.random()}>
@@ -4844,7 +5342,7 @@ const SalesStatisticOne = () => {
                                 <td>{meetingLocation}</td>
                                 <td>
                                   {item.images?.[0]?.docPath &&
-                                    item.images?.[0]?.docName ? (
+                                  item.images?.[0]?.docName ? (
                                     <img
                                       style={{ width: "50px" }}
                                       src={`${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`}
@@ -4920,8 +5418,8 @@ const SalesStatisticOne = () => {
                         <div className="text-center">
                           {selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                            selectedMember?.personalDetails?.profileImage
-                              ?.docName ? (
+                          selectedMember?.personalDetails?.profileImage
+                            ?.docName ? (
                             <img
                               src={`${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`}
                               alt="avatar"
@@ -5007,26 +5505,31 @@ const SalesStatisticOne = () => {
                           <p className="mb-2" style={{ fontSize: "13px" }}>
                             <strong>Address:</strong>{" "}
                             {`
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.addressLine1 || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.addressLine2 || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.city || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.postalCode || ""
-                              }
-                                                        ${selectedMember
-                                .businessAddress
-                                ?.state || ""
-                              }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.addressLine1 || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.addressLine2 || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.city || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.postalCode || ""
+                                                        }
+                                                        ${
+                                                          selectedMember
+                                                            .businessAddress
+                                                            ?.state || ""
+                                                        }
                                                     `
                               .replace(/\s+/g, " ")
                               .trim() || "N/A"}
@@ -5085,8 +5588,9 @@ const SalesStatisticOne = () => {
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {globalMembers.map((member, idx) => {
                       // Extract the first letter of first and last name for avatar fallback
-                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
-                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${
+                        member.personalDetails?.firstName?.charAt(0) || ""
+                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = `${IMAGE_BASE_URL}/${member.personalDetails?.profileImage?.docPath}/${member.personalDetails?.profileImage?.docName}`;
 
                       return (
@@ -5470,7 +5974,6 @@ const SalesStatisticOne = () => {
         aria-labelledby="exampleModalLabel"
         aria-hidden="true"
       >
-
         {/* referal submition with email trigger */}
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content radius-16 bg-base">
@@ -5776,7 +6279,7 @@ const SalesStatisticOne = () => {
                       !formData.mobile ||
                       !/^\d{10}$/.test(formData.mobile)
                       // !category ||                     // category not available in the form field
-                      // !/^[a-zA-Z\s]+$/.test(category)  // category not available in the form field 
+                      // !/^[a-zA-Z\s]+$/.test(category)  // category not available in the form field
                     }
                   >
                     Submit
@@ -6611,7 +7114,6 @@ const SalesStatisticOne = () => {
                   </label>
 
                   <div className="col-sm-10">
-
                     <input
                       type="date"
                       className="form-control"
@@ -6623,7 +7125,9 @@ const SalesStatisticOne = () => {
 
                         // Validate against allowed dates
                         if (!allowedDates.includes(selected)) {
-                          setErrors({ visitDate: "Please select a valid meeting day." });
+                          setErrors({
+                            visitDate: "Please select a valid meeting day.",
+                          });
                           setVisitDate("");
                           return;
                         }
@@ -6634,7 +7138,9 @@ const SalesStatisticOne = () => {
                     />
 
                     {errors.visitDate && (
-                      <div className="text-danger small">{errors.visitDate}</div>
+                      <div className="text-danger small">
+                        {errors.visitDate}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -7101,7 +7607,7 @@ const SalesStatisticOne = () => {
 
                 <button
                   className="btn btn-primary grip"
-                // onClick={() => handleApplyDateFilter(getExpectedVisitorDatas)}
+                  onClick={() => handleApplyDateFilter(getExpectedVisitorDatas)}
                 >
                   Go
                 </button>
@@ -7160,7 +7666,7 @@ const SalesStatisticOne = () => {
 
                   <tbody>
                     {expectedVisitorsDatas &&
-                      expectedVisitorsDatas.length > 0 ? (
+                    expectedVisitorsDatas.length > 0 ? (
                       expectedVisitorsDatas.map((item) => {
                         // Format date
                         const formattedDate = new Date(
@@ -7173,9 +7679,11 @@ const SalesStatisticOne = () => {
 
                         // Handle invitedBy safely
                         const invitedByName = item.invitedBy
-                          ? `${item.invitedBy?.personalDetails?.firstName || ""
-                          } ${item.invitedBy?.personalDetails?.lastName || ""
-                          }`
+                          ? `${
+                              item.invitedBy?.personalDetails?.firstName || ""
+                            } ${
+                              item.invitedBy?.personalDetails?.lastName || ""
+                            }`
                           : "—";
 
                         return (
@@ -7342,15 +7850,18 @@ const SalesStatisticOne = () => {
                           // const toMemberName = `${item.toMember.personalDetails.firstName} ${item.toMember.personalDetails.lastName}`;
                           // const fromMemberName = `${item.fromMember.personalDetails.firstName} ${item.fromMember.personalDetails.lastName}`;
                           const toMemberName = item.toMember?.personalDetails
-                            ? `${item.toMember.personalDetails.firstName || ""
-                            } ${item.toMember.personalDetails.lastName || ""}`
+                            ? `${
+                                item.toMember.personalDetails.firstName || ""
+                              } ${item.toMember.personalDetails.lastName || ""}`
                             : "N/A";
 
                           const fromMemberName = item.fromMember
                             ?.personalDetails
-                            ? `${item.fromMember.personalDetails.firstName || ""
-                            } ${item.fromMember.personalDetails.lastName || ""
-                            }`
+                            ? `${
+                                item.fromMember.personalDetails.firstName || ""
+                              } ${
+                                item.fromMember.personalDetails.lastName || ""
+                              }`
                             : "N/A";
 
                           // Format meeting location
@@ -7358,7 +7869,7 @@ const SalesStatisticOne = () => {
                             item.whereDidYouMeet === "commonlocation"
                               ? "Common Location"
                               : item.whereDidYouMeet.charAt(0).toUpperCase() +
-                              item.whereDidYouMeet.slice(1);
+                                item.whereDidYouMeet.slice(1);
 
                           return (
                             <tr key={item._id} className="text-xs">
@@ -7375,7 +7886,7 @@ const SalesStatisticOne = () => {
                                   style={{ width: "50px" }}
                                   src={
                                     item.images?.[0]?.docPath &&
-                                      item.images?.[0]?.docName
+                                    item.images?.[0]?.docName
                                       ? `${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`
                                       : ""
                                   }
@@ -8037,12 +8548,16 @@ const SalesStatisticOne = () => {
                             .replace(/\//g, "/");
 
                           // Get member full names with optional chaining
-                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
-                            } ${item.toMember?.personalDetails?.lastName || ""
-                            }`.trim();
-                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
-                            } ${item.fromMember?.personalDetails?.lastName || ""
-                            }`.trim();
+                          const toMemberName = `${
+                            item.toMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.toMember?.personalDetails?.lastName || ""
+                          }`.trim();
+                          const fromMemberName = `${
+                            item.fromMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.fromMember?.personalDetails?.lastName || ""
+                          }`.trim();
 
                           // Safely access referral details with fallbacks
                           const referralDetail = item.referalDetail || {};
@@ -8057,21 +8572,34 @@ const SalesStatisticOne = () => {
                               <td>
                                 <select
                                   className="form-select form-select-sm"
-                                  value={item.statusLog?.status || item.referalStatus || ""}
-                                  onChange={(e) => handleReferralStatusChange(e.target.value, item)}
+                                    style={{ height: "28px", padding: "2px 6px", fontSize: "12px" }}
+                                  value={
+                                    item.statusLog?.status ||
+                                    item.referalStatus ||
+                                    ""
+                                  }
+                                  onChange={(e) =>
+                                    handleReferralStatusChange(
+                                      e.target.value,
+                                      item
+                                    )
+                                  }
                                   disabled={
-  item.statusLog?.status === "Not Required" ||
-  item.statusLog?.status === "Contacted" ||
-  item.statusLog?.status === "Business Closed"
-}
+                                    item.statusLog?.status === "Not Required" ||
+                                    item.statusLog?.status === "Contacted" ||
+                                    item.statusLog?.status === "Business Closed"
+                                  }
                                 >
                                   <option value="">Select</option>
-                                  <option value="Not Required">Not Required</option>
+                                  <option value="Not Required">
+                                    Not Required
+                                  </option>
                                   <option value="Contacted">Contacted</option>
-                                  <option value="Business Closed">Business Closed</option>
+                                  <option value="Business Closed">
+                                    Business Closed
+                                  </option>
                                 </select>
                               </td>
-
 
                               {/* <td>{referralDetail.category || "-"}</td> */}
                               <td>{item.referalStatus || "-"}</td>
@@ -8213,10 +8741,11 @@ const SalesStatisticOne = () => {
                             <td>₹{event.amount || "1000"}</td>
                             <td>
                               <button
-                                className={`d-inline-block ${event.paid
-                                  ? "bg-success-100 text-success-600"
-                                  : "bg-danger-100 text-danger-600"
-                                  }`}
+                                className={`d-inline-block ${
+                                  event.paid
+                                    ? "bg-success-100 text-success-600"
+                                    : "bg-danger-100 text-danger-600"
+                                }`}
                                 style={{
                                   border: "none",
                                   outline: "none",
@@ -8724,12 +9253,16 @@ const SalesStatisticOne = () => {
                             .replace(/\//g, "/");
 
                           // Safely get member names with fallbacks
-                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
-                            } ${item.toMember?.personalDetails?.lastName || ""
-                            }`.trim();
-                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
-                            } ${item.fromMember?.personalDetails?.lastName || ""
-                            }`.trim();
+                          const toMemberName = `${
+                            item.toMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.toMember?.personalDetails?.lastName || ""
+                          }`.trim();
+                          const fromMemberName = `${
+                            item.fromMember?.personalDetails?.firstName || ""
+                          } ${
+                            item.fromMember?.personalDetails?.lastName || ""
+                          }`.trim();
 
                           return (
                             <tr key={item._id} className="text-xs">
