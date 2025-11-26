@@ -8572,7 +8572,7 @@ const SalesStatisticOne = () => {
                               <td>
                                 <select
                                   className="form-select form-select-sm"
-                                    style={{ height: "28px", padding: "2px 6px", fontSize: "12px" }}
+                                    style={{ height: "28px", padding: "2px 6px", fontSize: "12px", width: "120px" }}
                                   value={
                                     item.statusLog?.status ||
                                     item.referalStatus ||
