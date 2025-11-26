@@ -1138,31 +1138,45 @@ const SalesStatisticOne = () => {
   }, [selectedMember]);
   console.log(date, "datedate");
 
-  const getDashboardCounts = async (filter = "this-Week") => {
-    let params = {};
-    console.log(filter, "filter");
+const getDashboardCounts = async (filter = "this-week") => {
+  let params = {};
 
-    // Only add filterType if not "Over All"
-    if (filter !== "Over-All") {
-      params.filterType = filter.toLowerCase();
+  // SAFE FILTER
+  if (filter !== "Over-All") {
+    params.filterType = filter.toLowerCase();
+  }
+
+  console.log(userData,"chhhh")
+
+  // ❗ Make userData 100% safe
+  const chapterName = userData?.chapterInfo?.chapterId?.chapterName || null;
+
+  // FIND CHAPTER SAFELY
+  const chapter = chapterList?.find(
+    (c) => c.chapterName === chapterName
+  );
+
+  // ALWAYS SEND VALID WEEKDAY
+  params.weekday = chapter?.weekday?.toLowerCase() || "monday"; // fallback
+
+  console.log(params, "params");
+
+  try {
+    const getResponse = await formApiProvider.getDashboardFormCount(params);
+    if (getResponse?.status) {
+      setFormCount(getResponse.response?.data);
     }
-    console.log(params, "params");
+  } catch (error) {
+    console.error("Error fetching dashboard counts:", error);
+  }
+};
 
-    try {
-      const getResponse = await formApiProvider.getDashboardFormCount(params);
-      console.log(getResponse, "getResponse-getCount");
-      if (getResponse && getResponse.status) {
-        setFormCount(getResponse?.response?.data);
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard counts:", error);
-    }
-  };
-
-  // Initial load
-  useEffect(() => {
+useEffect(() => {
+  if (userData) {
     getDashboardCounts(selectedFilter);
-  }, []);
+  }
+}, [userData, selectedFilter]);
+
 
   // Update chart when profile percentage changes
   useEffect(() => {
@@ -2787,24 +2801,35 @@ const SalesStatisticOne = () => {
                         training.managed +
                         training.substitute;
 
+
                       return (
                         <tr key={member._id}>
-                          <td>{index + 1}</td>
-                          <td>{totalMeetings}</td>
+                          <td>{(pagination.page - 1) * pagination.limit + index + 1}</td>
+
+                          <td>
+                            <h6 className="text-md mb-0">{member.name}</h6>
+                            <small className="text-xs text-muted">{member.category}</small>
+                          </td>
+
+                          {/* Meetings */}
+                          <td>{meetings.totalMeetings}</td>
                           <td>{meetings.present}</td>
                           <td>{meetings.absent}</td>
                           <td>{meetings.late}</td>
                           <td>{meetings.managed}</td>
                           <td>{meetings.substitute}</td>
 
+                          {/* Events */}
                           <td>{totalEvents}</td>
+
+                          {/* Training */}
                           <td>{totalTraining}</td>
 
                           <td>{oneToOneCounts[member._id]?.fromCount || 0}</td>
                           <td>{referralCounts[member._id]?.given || 0}</td>
                           <td>{referralCounts[member._id]?.received || 0}</td>
-                          <td>{thankYouAmounts[member._id]?.given || 0}</td>
-                          <td>{thankYouAmounts[member._id]?.received || 0}</td>
+                          <td>{thankYouAmounts[member._id]?.givenAmount || 0}</td>
+                          <td>{thankYouAmounts[member._id]?.receivedAmount || 0}</td>
                           <td>{visitorCounts[member._id] || 0}</td>
                           <td>{testimonialCounts[member._id]?.given || 0}</td>
                           <td>
