@@ -130,7 +130,9 @@ const SalesStatisticOne = () => {
   const handleFilterChange = (e) => {
     const value = e.target.value;
     setSelectedFilter(value);
-    getDashboardCounts(value);
+    if (userData?.chapterInfo?.chapterId?._id) {
+      getDashboardCounts(value);
+    }
   };
 
   const [formData, setFormData] = useState({
@@ -499,7 +501,9 @@ const SalesStatisticOne = () => {
         }
       }
 
-      getDashboardCounts(selectedFilter);
+      if (userData?.chapterInfo?.chapterId?._id) {
+        getDashboardCounts(selectedFilter);
+      }
     }
     console.log("Form submitted:", formDatas);
   };
@@ -545,7 +549,9 @@ const SalesStatisticOne = () => {
         }
       }
 
-      getDashboardCounts(selectedFilter);
+      if (userData?.chapterInfo?.chapterId?._id) {
+        getDashboardCounts(selectedFilter);
+      }
     }
   };
 
@@ -607,7 +613,9 @@ const SalesStatisticOne = () => {
         }
       }
 
-      getDashboardCounts(selectedFilter);
+      if (userData?.chapterInfo?.chapterId?._id) {
+        getDashboardCounts(selectedFilter);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -693,7 +701,9 @@ const SalesStatisticOne = () => {
       } else {
         toast.error(formSubmit.response?.message || "Failed to create visitor");
       }
-      getDashboardCounts(selectedFilter);
+      if (userData?.chapterInfo?.chapterId?._id) {
+        getDashboardCounts(selectedFilter);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       setErrors({ submit: "Something went wrong. Please try again." });
@@ -789,7 +799,9 @@ const SalesStatisticOne = () => {
         );
       }
 
-      getDashboardCounts(selectedFilter);
+      if (userData?.chapterInfo?.chapterId?._id) {
+        getDashboardCounts(selectedFilter);
+      }
     } catch (error) {
       console.error("Error submitting expected visitor form:", error);
       setErrors({ submit: "Something went wrong. Please try again." });
@@ -845,7 +857,9 @@ const SalesStatisticOne = () => {
       }, 300);
 
       // REFRESH COUNTS
-      getDashboardCounts(selectedFilter);
+      if (userData?.chapterInfo?.chapterId?._id) {
+        getDashboardCounts(selectedFilter);
+      }
     } else {
       toast.error(result.response?.message || "Failed to submit");
     }
@@ -911,6 +925,7 @@ const SalesStatisticOne = () => {
 
   function useChapterDateFilter(chapterList, userData) {
     const [allowedDates, setAllowedDates] = useState([]);
+
     useEffect(() => {
       if (!chapterList || !userData?.chapterInfo?.chapterId?.chapterName) {
         setAllowedDates([]);
@@ -918,15 +933,12 @@ const SalesStatisticOne = () => {
       }
 
       const chapterName = userData.chapterInfo.chapterId.chapterName;
-
       const chapter = chapterList.find((c) => c.chapterName === chapterName);
 
-      if (!chapter || !chapter.weekday) {
+      if (!chapter?.weekday) {
         setAllowedDates([]);
         return;
       }
-
-      const targetWeekday = chapter.weekday.toLowerCase();
 
       const weekMap = {
         sunday: 0,
@@ -938,7 +950,7 @@ const SalesStatisticOne = () => {
         saturday: 6,
       };
 
-      const weekdayNum = weekMap[targetWeekday];
+      const weekdayNum = weekMap[chapter.weekday.toLowerCase()];
       if (weekdayNum === undefined) {
         setAllowedDates([]);
         return;
@@ -947,7 +959,7 @@ const SalesStatisticOne = () => {
       const dates = [];
       let date = new Date();
 
-      // Find next 2 occurrences of that weekday
+      // If today is the weekday → include today also
       while (dates.length < 2) {
         if (date.getDay() === weekdayNum) {
           dates.push(new Date(date));
@@ -955,8 +967,10 @@ const SalesStatisticOne = () => {
         date.setDate(date.getDate() + 1);
       }
 
+      // Convert to YYYY-MM-DD
       setAllowedDates(dates.map((d) => d.toISOString().split("T")[0]));
-    }, [chapterList, userData]); // Runs when chapter list OR user data changes
+    }, [chapterList, userData]);
+    console.log(allowedDates, "llllllll")
 
     return allowedDates;
   }
@@ -1086,9 +1100,8 @@ const SalesStatisticOne = () => {
         return {
           id: ival._id || `unknown_${ival.id}`, // Fallback ID if missing
           name:
-            `${personalDetails.firstName || ""} ${
-              personalDetails.lastName || ""
-            }`.trim() || "Unnamed Member",
+            `${personalDetails.firstName || ""} ${personalDetails.lastName || ""
+              }`.trim() || "Unnamed Member",
         };
       });
       console.log(data, "data");
@@ -1138,44 +1151,37 @@ const SalesStatisticOne = () => {
   }, [selectedMember]);
   console.log(date, "datedate");
 
-const getDashboardCounts = async (filter = "this-week") => {
-  let params = {};
+  const getDashboardCounts = async (filter = "this-week") => {
+    let params = {};
 
-  // SAFE FILTER
-  if (filter !== "Over-All") {
-    params.filterType = filter.toLowerCase();
-  }
-
-  console.log(userData,"chhhh")
-
-  // ❗ Make userData 100% safe
-  const chapterName = userData?.chapterInfo?.chapterId?.chapterName || null;
-
-  // FIND CHAPTER SAFELY
-  const chapter = chapterList?.find(
-    (c) => c.chapterName === chapterName
-  );
-
-  // ALWAYS SEND VALID WEEKDAY
-  params.weekday = chapter?.weekday?.toLowerCase() || "monday"; // fallback
-
-  console.log(params, "params");
-
-  try {
-    const getResponse = await formApiProvider.getDashboardFormCount(params);
-    if (getResponse?.status) {
-      setFormCount(getResponse.response?.data);
+    // SAFE FILTER
+    if (filter !== "Over-All") {
+      params.filterType = filter.toLowerCase();
     }
-  } catch (error) {
-    console.error("Error fetching dashboard counts:", error);
-  }
-};
 
-useEffect(() => {
-  if (userData) {
-    getDashboardCounts(selectedFilter);
-  }
-}, [userData, selectedFilter]);
+    // ❗ Make userData 100% safe
+    const chapterId = userData?.chapterInfo?.chapterId?._id || null;
+
+    // ALWAYS SEND VALID WEEKDAY
+    params.chapterId = chapterId
+
+    console.log(params, "params");
+
+    try {
+      const getResponse = await formApiProvider.getDashboardFormCount(params);
+      if (getResponse?.status) {
+        setFormCount(getResponse.response?.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard counts:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userData?.chapterInfo?.chapterId?._id) {
+      getDashboardCounts(selectedFilter);
+    }
+  }, [userData, selectedFilter]);
 
 
   // Update chart when profile percentage changes
@@ -1560,6 +1566,8 @@ useEffect(() => {
       const filteredTestimonials = allTestimonials.filter(
         (t) => t.fromMember._id === member._id
       );
+
+
 
       setTestimonialGivenDatas(filteredTestimonials);
 
@@ -1994,8 +2002,8 @@ useEffect(() => {
               <br />
               {userData?.personalDetails?.renewalDate
                 ? new Date(
-                    userData.personalDetails.renewalDate
-                  ).toLocaleDateString("en-GB")
+                  userData.personalDetails.renewalDate
+                ).toLocaleDateString("en-GB")
                 : ""}
             </Link>
           </div>
@@ -2388,13 +2396,13 @@ useEffect(() => {
                           <span className="text-xs text-secondary-light fw-medium">
                             {event.date
                               ? new Date(event.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
                               : "Date not specified"}
                           </span>
                         </div>
@@ -2403,11 +2411,10 @@ useEffect(() => {
                             ₹{event.amount || "1000"}
                           </h6>
                           <button
-                            className={`text-xs fw-medium px-3 border-0 ${
-                              event.paid
-                                ? "text-success-600 bg-success-100"
-                                : "text-danger-600 bg-danger-100"
-                            }`}
+                            className={`text-xs fw-medium px-3 border-0 ${event.paid
+                              ? "text-success-600 bg-success-100"
+                              : "text-danger-600 bg-danger-100"
+                              }`}
                             style={{
                               padding: "2px 7px",
                               borderRadius: "4px",
@@ -2415,7 +2422,7 @@ useEffect(() => {
                             }}
                             data-bs-toggle="modal"
                             data-bs-target="#paymentDetails"
-                            // onClick={() => handlePayment(event.id)}
+                          // onClick={() => handlePayment(event.id)}
                           >
                             {event.paid ? "Paid" : "Pay Now"}
                           </button>
@@ -2755,7 +2762,6 @@ useEffect(() => {
                       <th>ThankYou Given</th>
                       <th>ThankYou Received</th>
                       <th>Visitors</th>
-                      <th>Expected Visitors</th>
                       <th>Testimonial Given</th>
                       <th>Testimonial Received</th>
                     </tr>
@@ -2771,21 +2777,11 @@ useEffect(() => {
                         substitute: 0,
                       };
 
-                      const meetings =
-                        attendanceCounts?.[member._id]?.meeting ||
-                        defaultCounts;
-                      const events =
-                        attendanceCounts?.[member._id]?.event || defaultCounts;
-                      const training =
-                        attendanceCounts?.[member._id]?.training ||
-                        defaultCounts;
 
-                      const totalMeetings =
-                        meetings.present +
-                        meetings.absent +
-                        meetings.late +
-                        meetings.managed +
-                        meetings.substitute;
+                      // FIX: read correctly from backend structure
+                      const meetings = attendanceCounts?.[member._id]?.meeting || defaultCounts;
+                      const events = attendanceCounts?.[member._id]?.event || 0;
+                      const training = attendanceCounts?.[member._id]?.training || 0;
 
                       const totalEvents =
                         events.present +
@@ -2805,11 +2801,6 @@ useEffect(() => {
                       return (
                         <tr key={member._id}>
                           <td>{(pagination.page - 1) * pagination.limit + index + 1}</td>
-
-                          <td>
-                            <h6 className="text-md mb-0">{member.name}</h6>
-                            <small className="text-xs text-muted">{member.category}</small>
-                          </td>
 
                           {/* Meetings */}
                           <td>{meetings.totalMeetings}</td>
@@ -2832,9 +2823,7 @@ useEffect(() => {
                           <td>{thankYouAmounts[member._id]?.receivedAmount || 0}</td>
                           <td>{visitorCounts[member._id] || 0}</td>
                           <td>{testimonialCounts[member._id]?.given || 0}</td>
-                          <td>
-                            {testimonialCounts[member._id]?.received || 0}
-                          </td>
+                          <td>{testimonialCounts[member._id]?.received || 0}</td>
                         </tr>
                       );
                     })}
@@ -3194,7 +3183,7 @@ useEffect(() => {
                         src={
                           selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                          selectedMember?.personalDetails?.profileImage?.docName
+                            selectedMember?.personalDetails?.profileImage?.docName
                             ? `${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`
                             : "assets/images/avatar/avatar.jpg"
                         }
@@ -3416,215 +3405,193 @@ useEffect(() => {
 
                       <div className="d-flex justify-content-around mb-4 flex-wrap text-center mt-3">
 
-  {/* Referrals Given */}
-  <div className="action-item m-2">
-      {/* Referrals Given */}
-                        <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() => handleRefGivenClick(selectedMember)}
-                          >
-                            <i className="bi bi-people fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Referrals Given
-                          </small>
+                        {/* Referrals Given */}
+                        <div className="action-item m-2">
+                          {/* Referrals Given */}
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() => handleRefGivenClick(selectedMember)}
+                            >
+                              <i className="bi bi-people fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Referrals Given
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* Referrals Received */}
-  <div className="action-item m-2">
-       <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() =>
-                              handleRefReceivedClick(selectedMember)
-                            }
-                          >
-                            <i className="bi bi-person-plus fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Referrals Received
-                          </small>
+                        {/* Referrals Received */}
+                        <div className="action-item m-2">
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() =>
+                                handleRefReceivedClick(selectedMember)
+                              }
+                            >
+                              <i className="bi bi-person-plus fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Referrals Received
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* Testimonial Given */}
-  <div className="action-item m-2">
-       <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() =>
-                              handleTestimonialGivenDatas(selectedMember)
-                            }
-                          >
-                            <i className="bi bi-chat-left-quote fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Testimonial Given
-                          </small>
+                        {/* Testimonial Given */}
+                        <div className="action-item m-2">
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() =>
+                                handleTestimonialGivenDatas(selectedMember)
+                              }
+                            >
+                              <i className="bi bi-chat-left-quote fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Testimonial Given
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* Testimonial Received */}
-  <div className="action-item m-2">
-    <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() =>
-                              handleTestimonialReceivedDatas(selectedMember)
-                            }
-                          >
-                            <i className="bi bi-chat-dots fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Testimonial Received
-                          </small>
+                        {/* Testimonial Received */}
+                        <div className="action-item m-2">
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() =>
+                                handleTestimonialReceivedDatas(selectedMember)
+                              }
+                            >
+                              <i className="bi bi-chat-dots fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Testimonial Received
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* One-to-One */}
-  <div className="action-item m-2">
-            <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)", // red to maroon
-                              color: "white",
-                            }}
-                            onClick={() => handleOneToOneDatas(selectedMember)}
-                          >
-                            <i className="bi bi-people-fill fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            One-to-One
-                          </small>
+                        {/* One-to-One */}
+                        <div className="action-item m-2">
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)", // red to maroon
+                                color: "white",
+                              }}
+                              onClick={() => handleOneToOneDatas(selectedMember)}
+                            >
+                              <i className="bi bi-people-fill fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              One-to-One
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* Visitors */}
-  <div className="action-item m-2">
-         <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() => handleVisitorDatas(selectedMember)}
-                          >
-                            <i className="bi bi-eye fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Visitors
-                          </small>
+                        {/* Visitors */}
+                        <div className="action-item m-2">
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() => handleVisitorDatas(selectedMember)}
+                            >
+                              <i className="bi bi-eye fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Visitors
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* Expected Visitors */}
-  <div className="action-item m-2">
-      <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() =>
-                              handleExpectedVisitorDatas(selectedMember)
-                            }
-                          >
-                            <i className="bi bi-people fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Expected Visitors
-                          </small>
+                        {/* Expected Visitors */}
+                        <div className="action-item m-2">
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() =>
+                                handleExpectedVisitorDatas(selectedMember)
+                              }
+                            >
+                              <i className="bi bi-people fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Expected Visitors
+                            </small>
+                          </div>
                         </div>
-  </div>
 
-  {/* Business */}
-  <div className="action-item m-2">
+                        {/* Business */}
+                        <div className="action-item m-2">
 
-                        <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                          >
-                            <i className="bi bi-building fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Business
-                          </small>
+                          <div className="d-flex flex-column align-items-center m-2">
+                            <button
+                              className="btn rounded-circle d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                background:
+                                  "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
+                                color: "white",
+                              }}
+                              onClick={() => handleThankYouDatas(selectedMember)}
+                            >
+                              {/* Change icon to "bi-chat-text" for notes/messages */}
+                              <i className="bi bi-chat-text fs-3"></i>
+                            </button>
+                            <small style={{ fontSize: "11px", marginTop: "5px" }}>
+                              Business
+                            </small>
+                          </div>
                         </div>
-  </div>
-
-  {/* Thank You Notes Given */}
-  <div className="action-item m-2">
-         <div className="d-flex flex-column align-items-center m-2">
-                          <button
-                            className="btn rounded-circle d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "70px",
-                              height: "70px",
-                              background:
-                                "linear-gradient(135deg, #b30000, #800000, #0b0b0bff)",
-                              color: "white",
-                            }}
-                            onClick={() => handleThankYouDatas(selectedMember)}
-                          >
-                            {/* Change icon to "bi-chat-text" for notes/messages */}
-                            <i className="bi bi-chat-text fs-3"></i>
-                          </button>
-                          <small style={{ fontSize: "11px", marginTop: "5px" }}>
-                            Thank You Notes Given
-                          </small>
-                        </div>
-  </div>
-
-</div>
+                      </div>
 
 
 
@@ -3741,9 +3708,8 @@ useEffect(() => {
                   {/* Member List */}
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {memberList.map((member, idx) => {
-                      const initials = `${
-                        member.personalDetails?.firstName?.charAt(0) || ""
-                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
+                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = member.personalDetails?.profileImage
                         ?.docPath
                         ? `${IMAGE_BASE_URL}/${member.personalDetails.profileImage.docPath}/${member.personalDetails.profileImage.docName}`
@@ -4198,9 +4164,8 @@ useEffect(() => {
       </div>
       {/* Testimonial Given Modal */}
       <div
-        className={`modal fade ${
-          showTestimonialGivenPopup ? "show d-block" : ""
-        }`}
+        className={`modal fade ${showTestimonialGivenPopup ? "show d-block" : ""
+          }`}
         tabIndex="-1"
       >
         <div
@@ -4377,9 +4342,8 @@ useEffect(() => {
       </div>
       {/* Testimonial received Modal */}
       <div
-        className={`modal ${
-          showTestimonialReceivedPopup ? "d-block" : "d-none"
-        }`}
+        className={`modal ${showTestimonialReceivedPopup ? "d-block" : "d-none"
+          }`}
         tabIndex="-1"
       >
         <div
@@ -4786,7 +4750,7 @@ useEffect(() => {
                       <button
                         className="btn btn-primary grip"
                         style={{ minWidth: "60px" }}
-                        // onClick={() => handleApplyDateFilter(visitorsDatas)}
+                      // onClick={() => handleApplyDateFilter(visitorsDatas)}
                       >
                         Go
                       </button>
@@ -5019,11 +4983,9 @@ useEffect(() => {
                                 year: "2-digit",
                               });
 
-                              const invitedByName = `${
-                                item.invitedBy?.personalDetails?.firstName || ""
-                              } ${
-                                item.invitedBy?.personalDetails?.lastName || ""
-                              }`;
+                              const invitedByName = `${item.invitedBy?.personalDetails?.firstName || ""
+                                } ${item.invitedBy?.personalDetails?.lastName || ""
+                                }`;
 
                               return (
                                 <tr key={item._id}>
@@ -5063,7 +5025,7 @@ useEffect(() => {
           </div>
         </>
       )}
-      {/* thankugiven */}
+      {/* Thank You Given – Simplified */}
       {showThankYouPopup && (
         <>
           {/* Backdrop */}
@@ -5080,14 +5042,15 @@ useEffect(() => {
             style={{ zIndex: 2000 }}
           >
             <div
-              className="modal-dialog modal-xl modal-dialog-centered"
+              className="modal-dialog modal-md modal-dialog-centered"
               role="document"
             >
               <div className="modal-content radius-16 bg-base">
+
                 {/* Header */}
-                <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
+                <div className="modal-header py-16 px-24">
                   <h1 className="modal-title fs-5 text-danger">
-                    Chapter: Thank You Given Report
+                    Thank You Given Summary
                   </h1>
                   <button
                     type="button"
@@ -5098,109 +5061,24 @@ useEffect(() => {
 
                 {/* Body */}
                 <div className="modal-body">
-                  {/* Date Filter */}
-                  <div className="d-flex flex-wrap align-items-end gap-3 mb-3">
-                    <div
-                      className="flex-grow-1"
-                      style={{ minWidth: "120px", maxWidth: "200px" }}
-                    >
-                      <label className="form-label">
-                        Start Date <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        name="fromDate"
-                        value={dateRange.fromDate}
-                        onChange={handleDateRangeChange}
-                      />
-                    </div>
-                    <div
-                      className="flex-grow-1"
-                      style={{ minWidth: "120px", maxWidth: "200px" }}
-                    >
-                      <label className="form-label">
-                        End Date <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        name="toDate"
-                        value={dateRange.toDate}
-                        onChange={handleDateRangeChange}
-                      />
-                    </div>
-                    <button
-                      className="btn btn-primary grip"
-                      onClick={() => handleApplyDateFilter(thankYouSlipDatas)}
-                    >
-                      Go
-                    </button>
-                  </div>
 
-                  {/* Selected Member Info */}
-                  <div className="reportdetailss overflow-x-auto mb-3">
-                    <div className="bg-danger-100 p-3 rounded d-flex justify-content-between align-items-center">
-                      <div>
-                        <strong>Selected Member:</strong>{" "}
-                        {selectedMember?.personalDetails?.firstName}{" "}
-                        {selectedMember?.personalDetails?.lastName} | Chapter:{" "}
-                        {selectedMember?.chapterInfo?.chapterId?.chapterName}
-                      </div>
+                  {/* TOTAL COUNT + TOTAL AMOUNT */}
+                  <div className="p-3 mb-3 rounded bg-danger-100">
+                    <div>
+                      <strong>Total Amount Paid:</strong> ₹
+                      {thankYouSlipDatas.reduce(
+                        (sum, item) => sum + (item.amount || 0),
+                        0
+                      )}
                     </div>
-                  </div>
-
-                  {/* Table */}
-                  <div className="table-responsive">
-                    <table className="table table-bordered table-striped">
-                      <thead className="table-danger grip">
-                        <tr className="text-xs">
-                          <th>Date</th>
-                          <th>To Member</th>
-                          <th>From Member</th>
-                          <th>Amount</th>
-                          <th>Comments</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {thankYouSlipDatas.length > 0 ? (
-                          thankYouSlipDatas.map((item) => {
-                            const formatDate = new Date(
-                              item.createdAt
-                            ).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "2-digit",
-                            });
-                            const toMember = `${item.toMember?.personalDetails?.firstName} ${item.toMember?.personalDetails?.lastName}`;
-                            const fromMember = `${item.fromMember?.personalDetails?.firstName} ${item.fromMember?.personalDetails?.lastName}`;
-                            return (
-                              <tr key={item._id}>
-                                <td>{formatDate}</td>
-                                <td>{toMember}</td>
-                                <td>{fromMember}</td>
-                                <td>{item.amount}</td>
-                                <td>{item.comments}</td>
-                              </tr>
-                            );
-                          })
-                        ) : (
-                          <tr>
-                            <td colSpan="5" className="text-center">
-                              No records found
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="modal-footer border-top-0">
+                <div className="modal-footer">
                   <button
                     type="button"
-                    className="btn text-grip btn-outline-grip"
+                    className="btn btn-outline-grip"
                     onClick={() => setShowThankYouPopup(false)}
                   >
                     Close
@@ -5282,9 +5160,8 @@ useEffect(() => {
                     <div>
                       <strong>Ruuning Member: </strong>
                       {selectedMember?.personalDetails
-                        ? `${selectedMember.personalDetails.firstName || ""} ${
-                            selectedMember.personalDetails.lastName || ""
-                          }`
+                        ? `${selectedMember.personalDetails.firstName || ""} ${selectedMember.personalDetails.lastName || ""
+                        }`
                         : "N/A"}{" "}
                       | Chapter:{" "}
                       {selectedMember?.chapterInfo?.chapterId?.chapterName ||
@@ -5327,37 +5204,33 @@ useEffect(() => {
                             const formatDate = (date) =>
                               date
                                 ? new Date(date).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                  })
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "2-digit",
+                                })
                                 : "N/A";
 
                             const toMemberName = item.toMember?.personalDetails
-                              ? `${
-                                  item.toMember.personalDetails.firstName || ""
-                                } ${
-                                  item.toMember.personalDetails.lastName || ""
-                                }`
+                              ? `${item.toMember.personalDetails.firstName || ""
+                              } ${item.toMember.personalDetails.lastName || ""
+                              }`
                               : "N/A";
 
                             const fromMemberName = item.fromMember
                               ?.personalDetails
-                              ? `${
-                                  item.fromMember.personalDetails.firstName ||
-                                  ""
-                                } ${
-                                  item.fromMember.personalDetails.lastName || ""
-                                }`
+                              ? `${item.fromMember.personalDetails.firstName ||
+                              ""
+                              } ${item.fromMember.personalDetails.lastName || ""
+                              }`
                               : "N/A";
 
                             const meetingLocation =
                               item.whereDidYouMeet === "commonlocation"
                                 ? "Common Location"
                                 : item.whereDidYouMeet
-                                ? item.whereDidYouMeet.charAt(0).toUpperCase() +
+                                  ? item.whereDidYouMeet.charAt(0).toUpperCase() +
                                   item.whereDidYouMeet.slice(1)
-                                : "N/A";
+                                  : "N/A";
 
                             return (
                               <tr key={item._id || Math.random()}>
@@ -5367,7 +5240,7 @@ useEffect(() => {
                                 <td>{meetingLocation}</td>
                                 <td>
                                   {item.images?.[0]?.docPath &&
-                                  item.images?.[0]?.docName ? (
+                                    item.images?.[0]?.docName ? (
                                     <img
                                       style={{ width: "50px" }}
                                       src={`${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`}
@@ -5443,8 +5316,8 @@ useEffect(() => {
                         <div className="text-center">
                           {selectedMember?.personalDetails?.profileImage
                             ?.docPath &&
-                          selectedMember?.personalDetails?.profileImage
-                            ?.docName ? (
+                            selectedMember?.personalDetails?.profileImage
+                              ?.docName ? (
                             <img
                               src={`${IMAGE_BASE_URL}/${selectedMember.personalDetails.profileImage.docPath}/${selectedMember.personalDetails.profileImage.docName}`}
                               alt="avatar"
@@ -5530,31 +5403,26 @@ useEffect(() => {
                           <p className="mb-2" style={{ fontSize: "13px" }}>
                             <strong>Address:</strong>{" "}
                             {`
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.addressLine1 || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.addressLine2 || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.city || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.postalCode || ""
-                                                        }
-                                                        ${
-                                                          selectedMember
-                                                            .businessAddress
-                                                            ?.state || ""
-                                                        }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.addressLine1 || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.addressLine2 || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.city || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.postalCode || ""
+                              }
+                                                        ${selectedMember
+                                .businessAddress
+                                ?.state || ""
+                              }
                                                     `
                               .replace(/\s+/g, " ")
                               .trim() || "N/A"}
@@ -5613,9 +5481,8 @@ useEffect(() => {
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
                     {globalMembers.map((member, idx) => {
                       // Extract the first letter of first and last name for avatar fallback
-                      const initials = `${
-                        member.personalDetails?.firstName?.charAt(0) || ""
-                      }${member.personalDetails?.lastName?.charAt(0) || ""}`;
+                      const initials = `${member.personalDetails?.firstName?.charAt(0) || ""
+                        }${member.personalDetails?.lastName?.charAt(0) || ""}`;
                       const imageUrl = `${IMAGE_BASE_URL}/${member.personalDetails?.profileImage?.docPath}/${member.personalDetails?.profileImage?.docName}`;
 
                       return (
@@ -6906,20 +6773,27 @@ useEffect(() => {
                   <label className="form-label mb-0 col-sm-2">
                     Visit Date<span className="text-danger"></span>
                   </label>
+
                   <div className="col-sm-10">
-                    <input
-                      type="date"
+                    <select
                       className="form-control"
                       value={visitDate}
                       onChange={(e) => {
                         setVisitDate(e.target.value);
                         setErrors({});
                       }}
-                    />
+                    >
+                      <option value="">Select visit date</option>
+
+                      {allowedDates.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+
                     {errors.visitDate && (
-                      <div className="text-danger small">
-                        {errors.visitDate}
-                      </div>
+                      <div className="text-danger small">{errors.visitDate}</div>
                     )}
                   </div>
                 </div>
@@ -7139,28 +7013,20 @@ useEffect(() => {
                   </label>
 
                   <div className="col-sm-10">
-                    <input
-                      type="date"
+
+                    <select
                       className="form-control"
                       value={visitDate}
-                      min={allowedDates.length > 0 ? allowedDates[0] : ""}
-                      max={allowedDates.length > 1 ? allowedDates[1] : ""}
-                      onChange={(e) => {
-                        const selected = e.target.value;
+                      onChange={(e) => setVisitDate(e.target.value)}
+                    >
+                      <option value="">Select visit date</option>
 
-                        // Validate against allowed dates
-                        if (!allowedDates.includes(selected)) {
-                          setErrors({
-                            visitDate: "Please select a valid meeting day.",
-                          });
-                          setVisitDate("");
-                          return;
-                        }
-
-                        setVisitDate(selected);
-                        setErrors({});
-                      }}
-                    />
+                      {allowedDates.map((date) => (
+                        <option key={date} value={date}>
+                          {date}
+                        </option>
+                      ))}
+                    </select>
 
                     {errors.visitDate && (
                       <div className="text-danger small">
@@ -7691,7 +7557,7 @@ useEffect(() => {
 
                   <tbody>
                     {expectedVisitorsDatas &&
-                    expectedVisitorsDatas.length > 0 ? (
+                      expectedVisitorsDatas.length > 0 ? (
                       expectedVisitorsDatas.map((item) => {
                         // Format date
                         const formattedDate = new Date(
@@ -7704,11 +7570,9 @@ useEffect(() => {
 
                         // Handle invitedBy safely
                         const invitedByName = item.invitedBy
-                          ? `${
-                              item.invitedBy?.personalDetails?.firstName || ""
-                            } ${
-                              item.invitedBy?.personalDetails?.lastName || ""
-                            }`
+                          ? `${item.invitedBy?.personalDetails?.firstName || ""
+                          } ${item.invitedBy?.personalDetails?.lastName || ""
+                          }`
                           : "—";
 
                         return (
@@ -7875,18 +7739,15 @@ useEffect(() => {
                           // const toMemberName = `${item.toMember.personalDetails.firstName} ${item.toMember.personalDetails.lastName}`;
                           // const fromMemberName = `${item.fromMember.personalDetails.firstName} ${item.fromMember.personalDetails.lastName}`;
                           const toMemberName = item.toMember?.personalDetails
-                            ? `${
-                                item.toMember.personalDetails.firstName || ""
-                              } ${item.toMember.personalDetails.lastName || ""}`
+                            ? `${item.toMember.personalDetails.firstName || ""
+                            } ${item.toMember.personalDetails.lastName || ""}`
                             : "N/A";
 
                           const fromMemberName = item.fromMember
                             ?.personalDetails
-                            ? `${
-                                item.fromMember.personalDetails.firstName || ""
-                              } ${
-                                item.fromMember.personalDetails.lastName || ""
-                              }`
+                            ? `${item.fromMember.personalDetails.firstName || ""
+                            } ${item.fromMember.personalDetails.lastName || ""
+                            }`
                             : "N/A";
 
                           // Format meeting location
@@ -7894,7 +7755,7 @@ useEffect(() => {
                             item.whereDidYouMeet === "commonlocation"
                               ? "Common Location"
                               : item.whereDidYouMeet.charAt(0).toUpperCase() +
-                                item.whereDidYouMeet.slice(1);
+                              item.whereDidYouMeet.slice(1);
 
                           return (
                             <tr key={item._id} className="text-xs">
@@ -7911,7 +7772,7 @@ useEffect(() => {
                                   style={{ width: "50px" }}
                                   src={
                                     item.images?.[0]?.docPath &&
-                                    item.images?.[0]?.docName
+                                      item.images?.[0]?.docName
                                       ? `${IMAGE_BASE_URL}/${item.images[0].docPath}/${item.images[0].docName}`
                                       : ""
                                   }
@@ -8573,16 +8434,12 @@ useEffect(() => {
                             .replace(/\//g, "/");
 
                           // Get member full names with optional chaining
-                          const toMemberName = `${
-                            item.toMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.toMember?.personalDetails?.lastName || ""
-                          }`.trim();
-                          const fromMemberName = `${
-                            item.fromMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.fromMember?.personalDetails?.lastName || ""
-                          }`.trim();
+                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
+                            } ${item.toMember?.personalDetails?.lastName || ""
+                            }`.trim();
+                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
+                            } ${item.fromMember?.personalDetails?.lastName || ""
+                            }`.trim();
 
                           // Safely access referral details with fallbacks
                           const referralDetail = item.referalDetail || {};
@@ -8597,7 +8454,7 @@ useEffect(() => {
                               <td>
                                 <select
                                   className="form-select form-select-sm"
-                                    style={{ height: "28px", padding: "2px 6px", fontSize: "12px", width: "130px" }}
+                                  style={{ height: "28px", padding: "2px 6px", fontSize: "12px", width: "130px" }}
                                   value={
                                     item.statusLog?.status ||
                                     item.referalStatus ||
@@ -8766,11 +8623,10 @@ useEffect(() => {
                             <td>₹{event.amount || "1000"}</td>
                             <td>
                               <button
-                                className={`d-inline-block ${
-                                  event.paid
-                                    ? "bg-success-100 text-success-600"
-                                    : "bg-danger-100 text-danger-600"
-                                }`}
+                                className={`d-inline-block ${event.paid
+                                  ? "bg-success-100 text-success-600"
+                                  : "bg-danger-100 text-danger-600"
+                                  }`}
                                 style={{
                                   border: "none",
                                   outline: "none",
@@ -9278,16 +9134,12 @@ useEffect(() => {
                             .replace(/\//g, "/");
 
                           // Safely get member names with fallbacks
-                          const toMemberName = `${
-                            item.toMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.toMember?.personalDetails?.lastName || ""
-                          }`.trim();
-                          const fromMemberName = `${
-                            item.fromMember?.personalDetails?.firstName || ""
-                          } ${
-                            item.fromMember?.personalDetails?.lastName || ""
-                          }`.trim();
+                          const toMemberName = `${item.toMember?.personalDetails?.firstName || ""
+                            } ${item.toMember?.personalDetails?.lastName || ""
+                            }`.trim();
+                          const fromMemberName = `${item.fromMember?.personalDetails?.firstName || ""
+                            } ${item.fromMember?.personalDetails?.lastName || ""
+                            }`.trim();
 
                           return (
                             <tr key={item._id} className="text-xs">

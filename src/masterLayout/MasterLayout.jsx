@@ -177,7 +177,7 @@ const MasterLayout = ({ children }) => {
                 <div className="logoimggg">
                   <img
                     src="assets/images/grip/logo.png"
-                    style={{ height: "100px",width:"100px", objectFit: "contain" }}
+                    style={{ height: "100px", width: "100px", objectFit: "contain" }}
                     className="header-logo-img"
                     alt="Logo"
                   />
@@ -347,6 +347,18 @@ const MasterLayout = ({ children }) => {
                         </button>
                       </div>
                       <ul className="to-top-list">
+                        {/* View Profile / Update Profile */}
+                        <li>
+                          <Link
+                            className="dropdown-item d-flex align-items-center gap-3"
+                            to="/add-user"
+                            state={{ mode: "view" }}
+                          >
+                            <Icon icon="solar:user-circle-linear" className="icon text-xl" />
+                            View Profile
+                          </Link>
+                        </li>
+
                         <li onClick={logOutFunct}>
                           <Link
                             className="dropdown-item d-flex align-items-center gap-3 text-danger"

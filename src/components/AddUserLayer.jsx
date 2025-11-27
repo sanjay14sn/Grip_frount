@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import updateMemberProfile from "../services/login";
 import loginApiProvider from "../services/login";
 
 const AddUserLayer = () => {
+const location = useLocation();
+const isViewMode = location.state?.mode === "view";
+  const inputDisabled = isViewMode;
+
   const { id } = useParams();
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
@@ -179,13 +183,15 @@ const AddUserLayer = () => {
   // 🧩 LOADING STATE
   if (loading) return <p className="text-center mt-4">Loading...</p>;
 
-  return (
+ return (
     <div className="col-lg-12">
       <form onSubmit={handleSubmit}>
         {/* Personal Details */}
         <div className="card mt-24">
           <div className="card-header">
-            <h6 className="card-title mb-0">Personal Details</h6>
+            <h6 className="card-title mb-0">
+              {isViewMode ? "View Personal Details" : "Personal Details"}
+            </h6>
           </div>
           <div className="card-body">
             <div className="row gy-3">
@@ -196,33 +202,33 @@ const AddUserLayer = () => {
                 <input
                   type="text"
                   className="form-control"
+                  disabled={inputDisabled}
                   value={formData.personalDetails.firstName}
                   onChange={(e) =>
                     handleInputChange(e, "personalDetails", "firstName")
                   }
                 />
-                {errors.personalDetails?.firstName && (
-                  <span className="text-danger">
-                    {errors.personalDetails.firstName}
-                  </span>
-                )}
               </div>
+
               <div className="col-4">
                 <label className="form-label">Last Name</label>
                 <input
                   type="text"
                   className="form-control"
+                  disabled={inputDisabled}
                   value={formData.personalDetails.lastName}
                   onChange={(e) =>
                     handleInputChange(e, "personalDetails", "lastName")
                   }
                 />
               </div>
+
               <div className="col-4">
                 <label className="form-label">Date of Birth</label>
                 <input
                   type="date"
                   className="form-control"
+                  disabled={inputDisabled}
                   value={formData.personalDetails.dob}
                   onChange={(e) =>
                     handleInputChange(e, "personalDetails", "dob")
@@ -236,29 +242,29 @@ const AddUserLayer = () => {
         {/* Business Address */}
         <div className="card mt-24">
           <div className="card-header">
-            <h6 className="card-title mb-0">Business Address</h6>
+            <h6 className="card-title mb-0">
+              {isViewMode ? "View Business Address" : "Business Address"}
+            </h6>
           </div>
+
           <div className="card-body">
             <div className="row gy-3">
-              {[
-                "addressLine1",
-                "addressLine2",
-                "state",
-                "city",
-                "postalCode",
-              ].map((field) => (
-                <div key={field} className="col-4">
-                  <label className="form-label">{field}</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.businessAddress[field]}
-                    onChange={(e) =>
-                      handleInputChange(e, "businessAddress", field)
-                    }
-                  />
-                </div>
-              ))}
+              {["addressLine1", "addressLine2", "state", "city", "postalCode"].map(
+                (field) => (
+                  <div key={field} className="col-4">
+                    <label className="form-label">{field}</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      disabled={inputDisabled}
+                      value={formData.businessAddress[field]}
+                      onChange={(e) =>
+                        handleInputChange(e, "businessAddress", field)
+                      }
+                    />
+                  </div>
+                )
+              )}
             </div>
           </div>
         </div>
@@ -266,8 +272,11 @@ const AddUserLayer = () => {
         {/* Contact Details */}
         <div className="card mt-24">
           <div className="card-header">
-            <h6 className="card-title mb-0">Contact Details</h6>
+            <h6 className="card-title mb-0">
+              {isViewMode ? "View Contact Details" : "Contact Details"}
+            </h6>
           </div>
+
           <div className="card-body">
             <div className="row gy-3">
               {["secondaryPhone", "website"].map((field) => (
@@ -276,6 +285,7 @@ const AddUserLayer = () => {
                   <input
                     type="text"
                     className="form-control"
+                    disabled={inputDisabled}
                     value={formData.contactDetails[field]}
                     onChange={(e) =>
                       handleInputChange(e, "contactDetails", field)
@@ -290,17 +300,19 @@ const AddUserLayer = () => {
         {/* Business Details */}
         <div className="card mt-24">
           <div className="card-header">
-            <h5 className="card-title mb-0">Your Business Details</h5>
+            <h5 className="card-title mb-0">
+              {isViewMode ? "View Business Details" : "Your Business Details"}
+            </h5>
           </div>
+
           <div className="card-body">
             <div className="row">
               <div className="col-lg-6">
-                <label className="form-label">
-                  Describe Your Business Details
-                </label>
+                <label className="form-label">Describe Your Business Details</label>
                 <textarea
                   className="form-control"
                   rows={2}
+                  disabled={inputDisabled}
                   value={formData.businessDetails.businessDescription}
                   onChange={(e) =>
                     handleInputChange(
@@ -311,18 +323,18 @@ const AddUserLayer = () => {
                   }
                 />
               </div>
+
               <div className="col-6">
                 <label className="form-label">Years in Business</label>
                 <select
                   className="form-control form-select"
+                  disabled={inputDisabled}
                   value={formData.businessDetails.yearsInBusiness}
                   onChange={(e) =>
                     handleInputChange(e, "businessDetails", "yearsInBusiness")
                   }
                 >
-                  <option value="" disabled>
-                    Select duration
-                  </option>
+                  <option value="" disabled>Select duration</option>
                   <option value="below_1_year">Below 1 year</option>
                   <option value="1_5_years">1 to 5 years</option>
                   <option value="6_10_years">6 to 10 years</option>
@@ -333,24 +345,28 @@ const AddUserLayer = () => {
             </div>
           </div>
         </div>
-        <div className="d-flex align-items-center justify-content-end gap-3 mt-10">
-          <button
-            type="button"
-            className="border border-danger-600 text-danger-600 bg-transparent hover:bg-danger-100 text-md px-56 py-11 radius-8"
-            onClick={() => navigate("/dashboard")}
-            disabled={loading}
-          >
-            Cancel
-          </button>
 
-          <button
-            type="submit"
-            className="bg-primary-600 hover:bg-primary-700 text-white text-md px-56 py-12 radius-8 border-0"
-            disabled={loading}
-          >
-            {loading ? "Updating..." : "Update Profile"}
-          </button>
-        </div>
+        {/* Buttons - hidden in View Mode */}
+        {!isViewMode && (
+          <div className="d-flex align-items-center justify-content-end gap-3 mt-10">
+            <button
+              type="button"
+              className="border border-danger-600 text-danger-600 bg-transparent hover:bg-danger-100 text-md px-56 py-11 radius-8"
+              onClick={() => navigate("/dashboard")}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="bg-primary-600 hover:bg-primary-700 text-white text-md px-56 py-12 radius-8 border-0"
+              disabled={loading}
+            >
+              {loading ? "Updating..." : "Update Profile"}
+            </button>
+          </div>
+        )}
       </form>
 
       <ToastContainer />

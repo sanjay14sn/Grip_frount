@@ -501,7 +501,7 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         async getMembersAttendanceCount() {
         try {
             const response = await apiClient.post('/members/meetings-attendance-count',  {
-                memberIds:"fromUser",
+                members:"fromUser",
             });
 
             if (response.status === 200 || response.status === 201) {
