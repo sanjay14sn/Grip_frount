@@ -99,6 +99,7 @@ import MaintenancePage from "./pages/MaintenancePage";
 import BlankPagePage from "./pages/BlankPagePage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import CrosschapterPage from "./pages/CrosschapterPage";
+import VisitorsForm from "./components/VisitorsForm";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -119,6 +120,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/sign-in" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignInPage />} />
         <Route path="/sign-up" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignUpPage />} />
+        <Route path="/visitors" element={<VisitorsForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Protected Routes */}
