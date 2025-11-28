@@ -31,7 +31,7 @@ const SalesStatisticOne = () => {
   const [photo, setPhoto] = useState(null);
   const [location, setLocation] = useState("");
   const [topic, setTopic] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [onToOneDatas, setOnToOneDatas] = useState([]);
   const [visitorsDatas, setVisitorsDatas] = useState([]);
   const [expectedVisitorsDatas, setExpectedVisitorsDatas] = useState([]);
@@ -197,6 +197,8 @@ const SalesStatisticOne = () => {
     if (userData) {
       getMemberById(userData);
       profileCompletionPercentage(userData?.id);
+      fetchMembersWithAttendance(userData?.id);
+
       console.log(userData, "testwert");
     }
   }, []);
@@ -220,12 +222,10 @@ const SalesStatisticOne = () => {
   const paginatedMembers = userData ? [userData] : [];
 
   // ---------------- USE EFFECT ----------------
-  useEffect(() => {
-    fetchMembersWithAttendance();
-  }, []);
+
 
   // ---------------- MAIN FUNCTION ----------------
-  const fetchMembersWithAttendance = async () => {
+  const fetchMembersWithAttendance = async (id) => {
     try {
       const [
         attendanceRes,
@@ -235,12 +235,12 @@ const SalesStatisticOne = () => {
         visitorRes,
         testimonialRes,
       ] = await Promise.all([
-        formApiProvider.getMembersAttendanceCount(),
-        formApiProvider.getOneToOneCounts(),
-        formApiProvider.getReferralCounts(),
-        formApiProvider.getThankYouSlipAmounts(),
-        formApiProvider.getVisitorCounts(),
-        formApiProvider.getTestimonialCounts(),
+        formApiProvider.getMembersAttendanceCount(id),
+        formApiProvider.getOneToOneCounts(id),
+        formApiProvider.getReferralCounts(id),
+        formApiProvider.getThankYouSlipAmounts(id),
+        formApiProvider.getVisitorCounts(id),
+        formApiProvider.getTestimonialCounts(id),
       ]);
 
       if (attendanceRes?.success) setAttendanceCounts(attendanceRes.data);
@@ -3003,10 +3003,12 @@ const SalesStatisticOne = () => {
                     <input
                       type="date"
                       className="form-control"
-                      defaultValue="2025-05-23"
-                      required
+                      value={new Date().toISOString().split("T")[0]}
+                      readOnly     // user cannot change the text
+                      min={new Date().toISOString().split("T")[0]}  // disable past
+                      max={new Date().toISOString().split("T")[0]}  // disable future
                       name="date"
-                      onChange={(e) => setDate(e.target.value)}
+                      required
                     />
                   </div>
                 </div>

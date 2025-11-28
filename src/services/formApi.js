@@ -132,48 +132,48 @@ class FormApiProvider {
 
     // expectedvisitor
     async submitExpectedVisitors(input) {
-  try {
-    const token = localStorage.getItem("userToken");
+        try {
+            const token = localStorage.getItem("userToken");
 
-    const response = await apiClient.post(`/expectedVisitors`, input, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+            const response = await apiClient.post(`/expectedVisitors`, input, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-    if (response.status === 200 || response.status === 201) {
-      return { status: true, response: response.data };
-    } else {
-      return { status: false, response: response.data };
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            } else {
+                return { status: false, response: response.data };
+            }
+        } catch (error) {
+            return { status: false, response: error.response?.data ?? null };
+        }
     }
-  } catch (error) {
-    return { status: false, response: error.response?.data ?? null };
-  }
-}
 
 
-async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
-  try {
-    const token = localStorage.getItem("userToken");
+    async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
+        try {
+            const token = localStorage.getItem("userToken");
 
-    const response = await apiClient.get(
-      `/expectedVisitors?chapterId=${chapterId}&fromDate=${fromDate}&toDate=${toDate}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+            const response = await apiClient.get(
+                `/expectedVisitors?chapterId=${chapterId}&fromDate=${fromDate}&toDate=${toDate}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-    if (response.status === 200) {
-      return { status: true, response: response.data };
-    } else {
-      return { status: false, response: response.data };
+            if (response.status === 200) {
+                return { status: true, response: response.data };
+            } else {
+                return { status: false, response: response.data };
+            }
+        } catch (error) {
+            return { status: false, response: error.response?.data ?? null };
+        }
     }
-  } catch (error) {
-    return { status: false, response: error.response?.data ?? null };
-  }
-}
 
 
 
@@ -210,7 +210,7 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
     async getVisitorsDatasById(from, to) {
         try {
             const response = await apiClient.get(`/visitors/list`, {
-               params: {
+                params: {
                     fromDate: from,
                     toDate: to
                 }
@@ -259,7 +259,7 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
     async getThankyouSlipDatasById(from, to) {
         try {
             const response = await apiClient.get(`/thankyouslips/given/list`, {
-               params: {
+                params: {
                     fromDate: from,
                     toDate: to
                 }
@@ -308,7 +308,7 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
     async getReferalDatasById(from, to) {
         try {
             const response = await apiClient.get(`/referralslip/given/list`, {
-               params: {
+                params: {
                     fromDate: from,
                     toDate: to
                 }
@@ -378,10 +378,12 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
 
     async getThankyouReceivedDatasById(from, to) {
         try {
-            const response = await apiClient.get(`/thankyouslips/received/list`, { params: {
+            const response = await apiClient.get(`/thankyouslips/received/list`, {
+                params: {
                     fromDate: from,
                     toDate: to
-                } });
+                }
+            });
 
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
@@ -403,10 +405,12 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
 
     async getReferalReceivedDatasById(from, to) {
         try {
-            const response = await apiClient.get(`/referralslip/received/list`, {  params: {
+            const response = await apiClient.get(`/referralslip/received/list`, {
+                params: {
                     fromDate: from,
                     toDate: to
-                } });
+                }
+            });
 
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
@@ -428,10 +432,12 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
 
     async getTestimonialReceivedDatasById(from, to) {
         try {
-            const response = await apiClient.get(`/testimonialslips/received/list`, { params: {
+            const response = await apiClient.get(`/testimonialslips/received/list`, {
+                params: {
                     fromDate: from,
                     toDate: to
-                } });
+                }
+            });
 
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
@@ -453,10 +459,12 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
 
     async getTestimonialGivenDatasById(from, to) {
         try {
-            const response = await apiClient.get(`/testimonialslips/given/list`, {  params: {
+            const response = await apiClient.get(`/testimonialslips/given/list`, {
+                params: {
                     fromDate: from,
                     toDate: to
-                }});
+                }
+            });
 
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
@@ -498,11 +506,10 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
-        async getMembersAttendanceCount() {
+    async getMembersAttendanceCount(id) {
         try {
-            const response = await apiClient.post('/members/meetings-attendance-count',  {
-                members:"fromUser",
-            });
+            const response = await apiClient.get(`/members/meetings-attendance-count/${id}`);
+
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
@@ -516,12 +523,9 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
-    // memberApiProvider.ts
-    async getOneToOneCounts() {
+    async getOneToOneCounts(userId) {
         try {
-            const response = await apiClient.post('/members/one-to-one-count', {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/one-to-one-count/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
@@ -535,30 +539,25 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
-    async getOneToOneGivenCounts() {
+    async getOneToOneGivenCounts(userId) {
         try {
-            const response = await apiClient.post('/members/one-to-one-given-count',  {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/one-to-one-given-count/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
             } else {
-                console.error("Failed to fetch one-to-one counts:", response.data?.message);
+                console.error("Failed to fetch one-to-one given counts:", response.data?.message);
                 return { success: false, data: {} };
             }
         } catch (error) {
-            console.error("Error fetching one-to-one counts:", error);
+            console.error("Error fetching one-to-one given counts:", error);
             return { success: false, data: {} };
         }
     }
 
-
-    async getReferralCounts() {
+    async getReferralCounts(userId) {
         try {
-            const response = await apiClient.post('/members/referral-count',  {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/referral-count/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
@@ -572,29 +571,25 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
-    async getReferralGivenCounts() {
+    async getReferralGivenCounts(userId) {
         try {
-            const response = await apiClient.post('/members/referral-given-count',  {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/referral-given-count/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
             } else {
-                console.error("Failed to fetch referral counts:", response.data?.message);
+                console.error("Failed to fetch referral given counts:", response.data?.message);
                 return { success: false, data: {} };
             }
         } catch (error) {
-            console.error("Error fetching referral counts:", error);
+            console.error("Error fetching referral given counts:", error);
             return { success: false, data: {} };
         }
     }
 
-    async getThankYouSlipAmounts() {
+    async getThankYouSlipAmounts(userId) {
         try {
-            const response = await apiClient.post('/members/thank-you-slip-amounts',  {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/thank-you-slip-amounts/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
@@ -608,12 +603,9 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
-    // memberApiProvider.ts
-    async getVisitorCounts() {
+    async getVisitorCounts(userId) {
         try {
-            const response = await apiClient.post('/members/visitor-count',  {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/visitor-count/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
@@ -627,10 +619,10 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
         }
     }
 
-        async getVisitorReportCounts() {
+    async getVisitorReportCounts() {
         try {
-            const response = await apiClient.post('/members/visitor-report-count',  {
-                memberIds:"fromUser",
+            const response = await apiClient.post('/members/visitor-report-count', {
+                memberIds: "fromUser",
             });
 
             if (response.status === 200 || response.status === 201) {
@@ -646,11 +638,10 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
     }
 
     // memberApiProvider.ts
-    async getTestimonialCounts() {
+    // memberApiProvider.ts
+    async getTestimonialCounts(userId) {
         try {
-            const response = await apiClient.post('/members/testimonial-counts', {
-                memberIds:"fromUser",
-            });
+            const response = await apiClient.get(`/members/testimonial-counts/${userId}`);
 
             if (response.status === 200 || response.status === 201) {
                 return { success: true, data: response.data.data };
@@ -663,6 +654,7 @@ async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
             return { success: false, data: {} };
         }
     }
+
 
 }
 const formApiProvider = new FormApiProvider()
