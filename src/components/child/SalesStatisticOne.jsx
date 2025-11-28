@@ -2043,7 +2043,7 @@ const SalesStatisticOne = () => {
                             style={{ borderRadius: "12px" }}
                           >
                             <img
-                              src={`${process.env.REACT_APP_IMAGE_URL}/pins/${pin.image}`}
+                              src={`${IMAGE_BASE_URL}/pins/${pin.image}`}
                               alt={pin.name}
                               style={{
                                 width: "80px",
@@ -3920,7 +3920,7 @@ const SalesStatisticOne = () => {
                         "To Member",
                         "From Member",
                         "Referral Name",
-                        "Category",
+                        // "Category",
                         "Status",
                         "Phone Number",
                         "Address",
@@ -3960,7 +3960,7 @@ const SalesStatisticOne = () => {
                           {ref.fromMember?.personalDetails?.lastName || "-"}
                         </td>
                         <td>{ref.referalDetail?.name || "-"}</td>
-                        <td>{ref.referalDetail?.category || "-"}</td>
+                        {/* <td>{ref.referalDetail?.category || "-"}</td> */}
                         <td>{ref.referalStatus || "-"}</td>
                         <td>{ref.referalDetail?.mobileNumber || "-"}</td>
                         <td>{ref.referalDetail?.address || "-"}</td>
@@ -4103,7 +4103,7 @@ const SalesStatisticOne = () => {
                         "To Member",
                         "From Member",
                         "Referral Name",
-                        "Category",
+                        // "Category",
                         "Status",
                         "Phone Number",
                         "Address",
@@ -4136,7 +4136,7 @@ const SalesStatisticOne = () => {
                           {ref.fromMember?.personalDetails?.lastName || "-"}
                         </td>
                         <td>{ref.referalDetail?.name || "-"}</td>
-                        <td>{ref.referalDetail?.category || "-"}</td>
+                        {/* <td>{ref.referalDetail?.category || "-"}</td> */}
                         <td>{ref.referalStatus || "-"}</td>
                         <td>{ref.referalDetail?.mobileNumber || "-"}</td>
                         <td>{ref.referalDetail?.address || "-"}</td>
