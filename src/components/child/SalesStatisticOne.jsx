@@ -5052,7 +5052,7 @@ const SalesStatisticOne = () => {
                 {/* Header */}
                 <div className="modal-header py-16 px-24">
                   <h1 className="modal-title fs-5 text-danger">
-                    Thank You Given Summary
+                    BUSINESS GIVEN 
                   </h1>
                   <button
                     type="button"
@@ -5067,11 +5067,8 @@ const SalesStatisticOne = () => {
                   {/* TOTAL COUNT + TOTAL AMOUNT */}
                   <div className="p-3 mb-3 rounded bg-danger-100">
                     <div>
-                      <strong>Total Amount Paid:</strong> ₹
-                      {thankYouSlipDatas.reduce(
-                        (sum, item) => sum + (item.amount || 0),
-                        0
-                      )}
+                      <strong> TOTAL AMOUNT :</strong> ₹
+                      {thankYouAmounts[Object.keys(thankYouAmounts)[0]].receivedAmount|| 0}
                     </div>
                   </div>
                 </div>
