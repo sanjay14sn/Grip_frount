@@ -151,29 +151,33 @@ class FormApiProvider {
         }
     }
 
+    async getExpectedVisitorsDatasById(from, to) {
+  try {
+    const token = localStorage.getItem("userToken");
 
-    async getExpectedVisitorsDatasById(chapterId, fromDate, toDate) {
-        try {
-            const token = localStorage.getItem("userToken");
+    const response = await apiClient.get(
+      "/expectedVisitors",
+      {
+        params: {
+          fromDate: from,
+          toDate: to,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-            const response = await apiClient.get(
-                `/expectedVisitors?chapterId=${chapterId}&fromDate=${fromDate}&toDate=${toDate}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (response.status === 200) {
-                return { status: true, response: response.data };
-            } else {
-                return { status: false, response: response.data };
-            }
-        } catch (error) {
-            return { status: false, response: error.response?.data ?? null };
-        }
+    if (response.status === 200) {
+      return { status: true, response: response.data };
+    } else {
+      return { status: false, response: response.data };
     }
+  } catch (error) {
+    return { status: false, response: error.response?.data ?? null };
+  }
+}
+
 
 
 

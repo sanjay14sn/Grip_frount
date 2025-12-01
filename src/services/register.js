@@ -67,6 +67,32 @@ class RegisterApiProvider {
             return { status: false, response: error.response?.data ?? null };
         }
     }
+
+    
+    async getHeadTableMembersByChapterId(input) {
+        try {
+      const token = localStorage.getItem("userToken");
+
+            const response = await apiClient.get(`/chapters/headTableMembers/${input}`);
+
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            } else {
+                console.error("Failed to fetch head table members by id:", response.data?.message ?? "Something went wrong");
+                return { status: false, response: response.data };
+            }
+        } catch (error) {
+            console.error("Error fetching head table members by id:", error);
+
+            if (error.response && error.response.status === 401) {
+                console.error("Unauthorized access - check your token.");
+                console.error("Error Response:", error.response.data);
+            }
+
+            return { status: false, response: error.response?.data ?? null };
+        }
+    }
+
     async getZonesByState(input) {
         try {
             const response = await apiClient.get(`/zones/by-state/${input}`);

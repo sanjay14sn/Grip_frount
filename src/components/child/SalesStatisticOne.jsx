@@ -63,6 +63,7 @@ const SalesStatisticOne = () => {
   const [referalError, setRefferalFormErrors] = useState({});
   const [profilePercentage, setprofilePercentage] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [headTableMembersData, setHeadTableMembersData] = useState([]);
 
   //
   // const [refGiven, setRefGiven] = useState([]);
@@ -327,11 +328,8 @@ const SalesStatisticOne = () => {
 
   // expectedvisitors function
   const getExpectedVisitorDatas = async () => {
-    const chapterId =
-      userData?.chapterInfo?.chapterId?._id || userData?.chapterInfo?.chapterId;
 
     const result = await formApiProvider.getExpectedVisitorsDatasById(
-      chapterId,
       dateRange.fromDate,
       dateRange.toDate
     );
@@ -340,6 +338,29 @@ const SalesStatisticOne = () => {
       setExpectedVisitorsDatas(result?.response?.data || []);
     }
   };
+
+
+ useEffect(() => {
+  const chapId = userData?.chapterInfo?.chapterId?._id;
+
+  if (chapId) {
+    getHeadTableMembers(chapId);
+  } else {
+    console.error("❌ chapterId not found in userData");
+  }
+}, [userData]);
+
+
+  const getHeadTableMembers = async (id) => {
+  const response = await registerApiProvider.getHeadTableMembersByChapterId(id);
+
+  if (response?.status) {
+    setHeadTableMembersData(response.response.data || []);
+  } else {
+    console.error("Failed to fetch head table members");
+  }
+};
+
 
   const getOneThankYouDatas = async () => {
     const result = await formApiProvider.getThankyouSlipDatasById(
@@ -3579,34 +3600,6 @@ const SalesStatisticOne = () => {
                           </div>
                         </div>
                       </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                       {/* Business Description */}
                       <div className="mt-3">
                         <span style={{ fontSize: "13px" }}>
@@ -3691,6 +3684,63 @@ const SalesStatisticOne = () => {
                       }}
                     />
                   </form>
+                  
+              {/* Head Table member data */}
+                 <div className="card-body p-24">
+  <div className="row g-4 justify-content-evenly">
+    {headTableMembersData.map((member, index) => (
+      <div
+        key={index}
+        className="col-12 col-sm-6 col-md-4 col-lg-3 user-grid-card"
+      >
+        <div
+          className="p-4 rounded-4 text-center"
+          style={{
+            background: "linear-gradient(160deg, #5a4a4a, #b93535)",
+            borderRadius: "20px",
+          }}
+        >
+          <img
+            src={
+              member?.profileImage?.docPath
+                ? `${IMAGE_BASE_URL}/${member.profileImage.docPath}/${member.profileImage.docName}`
+                : "/assets/images/avatar/avatar1.png"
+            }
+            alt={member.name}
+            className="border border-white border-2 mt-3 mb-2 rounded-circle"
+            style={{ width: "110px", height: "110px", objectFit: "cover" }}
+            onError={(e) => (e.target.src = "/assets/images/avatar/avatar1.png")}
+          />
+
+          <h6 className="fw-semibold text-white mt-3 mb-1">
+            {member?.name}
+          </h6>
+
+          <span className="text-white-50 d-block mb-3">
+            {member?.roleName}
+          </span>
+
+          <div className="d-flex justify-content-center gap-3 mt-2">
+            <a
+              href={`tel:${member?.mobileNumber}`}
+              className="btn bg-white p-2 rounded-3 d-flex align-items-center justify-content-center"
+            >
+              <Icon icon="mdi:phone-outline" className="text-danger fs-4" />
+            </a>
+
+            <a
+              href={`mailto:${member?.email}`}
+              className="btn bg-white p-2 rounded-3 d-flex align-items-center justify-content-center"
+            >
+              <Icon icon="mdi:email-outline" className="text-danger fs-4" />
+            </a>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+                </div>
+
 
                   {/* Member List */}
                   <div className="d-flex flex-wrap gap-4 justify-content-center p-20">
