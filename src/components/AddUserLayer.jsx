@@ -3,6 +3,12 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import updateMemberProfile from "../services/login";
 import loginApiProvider from "../services/login";
+import Swal from 'sweetalert2';
+import { IMAGE_BASE_URL } from '../config';
+import { Icon } from '@iconify/react/dist/iconify.js';
+
+
+
 
 const AddUserLayer = () => {
 const location = useLocation();
@@ -12,6 +18,8 @@ const isViewMode = location.state?.mode === "view";
   const { id } = useParams();
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -64,6 +72,7 @@ const isViewMode = location.state?.mode === "view";
             isOtherNetworkingOrgs: !!d.personalDetails?.isOtherNetworkingOrgs,
             otherNetworkingOrgs: d.personalDetails?.otherNetworkingOrgs || "",
             education: d.personalDetails?.education || "",
+            profileImage: d.personalDetails?.profileImage || null,
             pins: Array.isArray(d.personalDetails?.pins)
               ? d.personalDetails.pins
               : [],
@@ -127,58 +136,92 @@ const isViewMode = location.state?.mode === "view";
     }));
   };
 
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreviewUrl(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  }
+};
+
   // 🧩 HANDLE SUBMIT (Update)
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      // ✅ Get only the editable fields
-      const payload = {
-        personalDetails: {
-          firstName: formData.personalDetails.firstName,
-          lastName: formData.personalDetails.lastName,
-          dob: formData.personalDetails.dob,
-        },
-        businessAddress: {
-          addressLine1: formData.businessAddress.addressLine1,
-          addressLine2: formData.businessAddress.addressLine2,
-          state: formData.businessAddress.state,
-          city: formData.businessAddress.city,
-          postalCode: formData.businessAddress.postalCode,
-        },
-        contactDetails: {
-          secondaryPhone: formData.contactDetails.secondaryPhone,
-          website: formData.contactDetails.website,
-        },
-        businessDetails: {
-          businessDescription: formData.businessDetails.businessDescription,
-          yearsInBusiness: formData.businessDetails.yearsInBusiness,
-        },
-      };
+  e.preventDefault();
 
-      console.log("clean payload", payload);
-      const storedUser = JSON.parse(localStorage.getItem("userData"));
-      const userId = storedUser?.member?.id || storedUser?.id;
-
-      // const { status, response } = await loginApiProvider.updateMemberProfile(id, payload);
-      const { status, response } = await loginApiProvider.updateMemberProfile(
-        userId,
-        payload
-      );
-
-      if (status) {
-        toast.success("Profile updated successfully!");
-        navigate("/members");
-      } else {
-        toast.error(response?.message || "Failed to update profile");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong while updating");
-    } finally {
-      setLoading(false);
+  try {
+        // ----------------------
+    // FRONTEND VALIDATION
+    // ----------------------
+    if (!formData.personalDetails.firstName?.trim()) {
+      toast.error("First name is required!");
+      return;
     }
-  };
+
+    setLoading(true);
+
+    // Create FormData
+    const formDataToSend = new FormData();
+
+    // Append the JSON fields (convert your payload to JSON)
+    const payload = {
+      personalDetails: {
+        firstName: formData.personalDetails.firstName,
+        lastName: formData.personalDetails.lastName,
+        dob: formData.personalDetails.dob,
+      },
+      businessAddress: {
+        addressLine1: formData.businessAddress.addressLine1,
+        addressLine2: formData.businessAddress.addressLine2,
+        state: formData.businessAddress.state,
+        city: formData.businessAddress.city,
+        postalCode: formData.businessAddress.postalCode,
+      },
+      contactDetails: {
+        secondaryPhone: formData.contactDetails.secondaryPhone,
+        website: formData.contactDetails.website,
+      },
+      businessDetails: {
+        businessDescription: formData.businessDetails.businessDescription,
+        yearsInBusiness: formData.businessDetails.yearsInBusiness,
+      },
+    };
+
+    formDataToSend.append("payload", JSON.stringify(payload));
+
+    // Append image file (if selected)
+    if (selectedFile) {
+      formDataToSend.append("profileImage", selectedFile);
+    }
+
+    console.log("FORMDATA SENT:", [...formDataToSend]);
+
+    const storedUser = JSON.parse(localStorage.getItem("userData"));
+    const userId = storedUser?.member?.id || storedUser?.id;
+
+    // API CALL
+    const { status, response } =
+      await loginApiProvider.updateMemberProfile(userId, formDataToSend);
+
+    if (status) {
+      toast.success("Profile updated successfully!");
+      navigate("/members");
+    } else {
+      toast.error(response?.message || "Failed to update profile");
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong while updating");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // 🧩 LOADING STATE
   if (loading) return <p className="text-center mt-4">Loading...</p>;
@@ -186,6 +229,77 @@ const isViewMode = location.state?.mode === "view";
  return (
     <div className="col-lg-12">
       <form onSubmit={handleSubmit}>
+
+         {/* Profile Image Card */}
+          <div className="card">
+  <div className="card-header">
+    <h6 className="card-title mb-0">
+      {isViewMode ? "Profile Image" : "Upload Profile Image"}
+    </h6>
+  </div>
+
+  <div className="card-body">
+    {/* The Wrapper to control the fixed 150x150 UI */}
+    <div
+      className="position-relative"
+      style={{ width: "150px", height: "150px" }}
+    >
+
+      {/* CAMERA BUTTON - only when not in view mode */}
+      {!isViewMode && (
+        <div
+          className="avatar-edit position-absolute z-1"
+          style={{ bottom: "5px", right: "5px" }}
+        >
+          <input
+            type="file"
+            id="imageUpload"
+            accept=".png, .jpg, .jpeg"
+            hidden
+            onChange={handleImageChange}
+            disabled={loading}
+          />
+
+          <label
+            htmlFor="imageUpload"
+            className="w-32-px h-32-px d-flex justify-content-center align-items-center 
+                       bg-primary-50 text-primary-600 border border-primary-600 
+                       bg-hover-primary-100 text-lg rounded-circle cursor-pointer"
+          >
+            <Icon icon="solar:camera-outline" className="icon" />
+          </label>
+        </div>
+      )}
+
+      {/* PROFILE IMAGE PREVIEW */}
+      <div
+        className="avatar-preview rounded-circle overflow-hidden"
+        style={{
+          width: "150px",
+          height: "150px",
+          border: "2px solid #dc3545",
+        }}
+      >
+        <div
+          id="imagePreview"
+          className="w-100 h-100 rounded-circle"
+          style={{
+            backgroundImage: imagePreviewUrl
+              ? `url(${imagePreviewUrl})`
+              :  formData?.personalDetails?.profileImage?.docName
+              ? `url(${IMAGE_BASE_URL}${formData?.personalDetails?.profileImage?.docPath}/${formData?.personalDetails?.profileImage?.docName})`
+              : "url('https://via.placeholder.com/150?text=150X150')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            width: "100%",
+            height: "100%",
+          }}
+        ></div>
+      </div>
+    </div>
+  </div>
+          </div>
+
         {/* Personal Details */}
         <div className="card mt-24">
           <div className="card-header">
