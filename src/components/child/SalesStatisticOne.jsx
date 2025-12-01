@@ -2542,51 +2542,45 @@ const SalesStatisticOne = () => {
                   gap: "1rem",
                 }}
               >
-                {upcomingMeetings?.map((event, index) => (
-                  <div
-                    key={event._id || index}
-                    className="flex-shrink-0"
-                    style={{
-                      width: "250px",
-                      backgroundColor: "#ffe3e3",
-                      minHeight: "300px",
-                    }}
-                  >
-                    <div className="border rounded p-3 h-100 d-flex flex-column">
-                      <img
-                        src={
-                          event.image
-                            ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
-                            : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg?s=612x612"
-                        }
-                        alt="Event"
-                        style={{
-                          width: "100%",
-                          height: "200px",
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                        }}
-                      />
+                {(!upcomingMeetings || upcomingMeetings.length === 0) ? (
+                  <div className="text-center w-100 py-4">No Meetings</div>
+                ) : (
+                  upcomingMeetings.map((event, index) => (
+                    <div
+                      key={event._id || index}
+                      className="flex-shrink-0"
+                      style={{
+                        width: "250px",
+                        backgroundColor: "#ffe3e3",
+                        minHeight: "300px",
+                      }}
+                    >
+                      <div className="border rounded p-3 h-100 d-flex flex-column">
+                        <img
+                          src={
+                            event.image
+                              ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
+                              : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg?s=612x612"
+                          }
+                          alt="Event"
+                          style={{
+                            width: "100%",
+                            height: "200px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                          }}
+                        />
 
-                      <div className="mt-2 small">
-                        <p>
-                          <strong>Topic:</strong> {event.topic}
-                        </p>
-                        <p>
-                          <strong>Hotel Name:</strong> {event.hotelName}
-                        </p>
-                        <p>
-                          <strong>Start:</strong>{" "}
-                          {new Date(event.startDate).toLocaleString()}
-                        </p>
-                        <p>
-                          <strong>End:</strong>{" "}
-                          {new Date(event.endDate).toLocaleString()}
-                        </p>
+                        <div className="mt-2 small">
+                          <p><strong>Topic:</strong> {event.topic}</p>
+                          <p><strong>Hotel Name:</strong> {event.hotelName}</p>
+                          <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
+                          <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -2607,61 +2601,58 @@ const SalesStatisticOne = () => {
                   gap: "1rem",
                 }}
               >
-                {upcomingTrainings?.map((event, index) => (
-                  <div
-                    key={event._id || index}
-                    className="flex-shrink-0"
-                    style={{
-                      width: "250px",
-                      backgroundColor: "#ffe3e3",
-                      minHeight: "300px",
-                    }}
-                  >
-                    <div className="border rounded p-3 h-100 d-flex flex-column">
-                      <div className="overflow-hidden flex-grow-1">
-                        <img
-                          src={
-                            event.image
-                              ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
-                              : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
-                          }
-                          style={{
-                            width: "100%",
-                            maxHeight: "200px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                          }}
-                        />
-                      </div>
+                {(!upcomingTrainings || upcomingTrainings.length === 0) ? (
+                  <div className="text-center w-100 py-4">No Trainings</div>
+                ) : (
+                  upcomingTrainings.map((event, index) => (
+                    <div
+                      key={event._id || index}
+                      className="flex-shrink-0"
+                      style={{
+                        width: "250px",
+                        backgroundColor: "#ffe3e3",
+                        minHeight: "300px",
+                      }}
+                    >
+                      <div className="border rounded p-3 h-100 d-flex flex-column">
+                        <div className="overflow-hidden flex-grow-1">
+                          <img
+                            src={
+                              event.image
+                                ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
+                                : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
+                            }
+                            style={{
+                              width: "100%",
+                              maxHeight: "200px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                            }}
+                          />
+                        </div>
 
-                      <div className="mt-2 small">
-                        <p>
-                          <strong>Topic:</strong> {event.topic}
-                        </p>
-                        <p>
-                          <strong>Start:</strong>{" "}
-                          {new Date(event.startDate).toLocaleString()}
-                        </p>
-                        <p>
-                          <strong>End:</strong>{" "}
-                          {new Date(event.endDate).toLocaleString()}
-                        </p>
+                        <div className="mt-2 small">
+                          <p><strong>Topic:</strong> {event.topic}</p>
+                          <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
+                          <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
 
-                        {event.trainingType && (
-                          <p>
-                            <strong>Training Type:</strong>{" "}
-                            {event?.trainingType || "entire_day"}
-                          </p>
-                        )}
+                          {event.trainingType && (
+                            <p>
+                              <strong>Training Type:</strong>{" "}
+                              {event.trainingType || "entire_day"}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
       {/* Row 2 → Events */}
       <div className="row mt-4">
         <div className="col-12">
@@ -2678,56 +2669,50 @@ const SalesStatisticOne = () => {
                   gap: "1rem",
                 }}
               >
-                {upcomingEvents
-                  ?.filter((ev) => ev && ev.topic)
-                  ?.map((event, index) => (
-                    <div
-                      key={event._id || index}
-                      className="flex-shrink-0"
-                      style={{
-                        width: "250px",
-                        backgroundColor: "#ffe3e3",
-                        minHeight: "300px",
-                      }}
-                    >
-                      <div className="border rounded p-3 h-100 d-flex flex-column">
-                        <img
-                          src={
-                            event.image
-                              ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
-                              : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
-                          }
-                          style={{
-                            width: "100%",
-                            maxHeight: "200px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                          }}
-                        />
+                {(!upcomingEvents || upcomingEvents.filter(ev => ev && ev.topic).length === 0) ? (
+                  <div className="text-center w-100 py-4">No Events</div>
+                ) : (
+                  upcomingEvents
+                    .filter(ev => ev && ev.topic)
+                    .map((event, index) => (
+                      <div
+                        key={event._id || index}
+                        className="flex-shrink-0"
+                        style={{
+                          width: "250px",
+                          backgroundColor: "#ffe3e3",
+                          minHeight: "300px",
+                        }}
+                      >
+                        <div className="border rounded p-3 h-100 d-flex flex-column">
+                          <img
+                            src={
+                              event.image
+                                ? `${IMAGE_BASE_URL}/${event.image.docPath}/${event.image.docName}`
+                                : "https://media.istockphoto.com/id/499517325/photo/a-man-speaking-at-a-business-conference.jpg"
+                            }
+                            style={{
+                              width: "100%",
+                              maxHeight: "200px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                            }}
+                          />
 
-                        <div className="mt-2 small">
-                          <p>
-                            <strong>Topic:</strong> {event.topic}
-                          </p>
+                          <div className="mt-2 small">
+                            <p><strong>Topic:</strong> {event.topic}</p>
 
-                          {event.hotelName && (
-                            <p>
-                              <strong>Hotel Name:</strong> {event.hotelName}
-                            </p>
-                          )}
+                            {event.hotelName && (
+                              <p><strong>Hotel Name:</strong> {event.hotelName}</p>
+                            )}
 
-                          <p>
-                            <strong>Start:</strong>{" "}
-                            {new Date(event.startDate).toLocaleString()}
-                          </p>
-                          <p>
-                            <strong>End:</strong>{" "}
-                            {new Date(event.endDate).toLocaleString()}
-                          </p>
+                            <p><strong>Start:</strong> {new Date(event.startDate).toLocaleString()}</p>
+                            <p><strong>End:</strong> {new Date(event.endDate).toLocaleString()}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                )}
               </div>
             </div>
           </div>
@@ -5052,7 +5037,7 @@ const SalesStatisticOne = () => {
                 {/* Header */}
                 <div className="modal-header py-16 px-24">
                   <h1 className="modal-title fs-5 text-danger">
-                    BUSINESS GIVEN 
+                    BUSINESS GIVEN
                   </h1>
                   <button
                     type="button"
@@ -5068,7 +5053,7 @@ const SalesStatisticOne = () => {
                   <div className="p-3 mb-3 rounded bg-danger-100">
                     <div>
                       <strong> TOTAL AMOUNT :</strong> ₹
-                      {thankYouAmounts[Object.keys(thankYouAmounts)[0]].receivedAmount|| 0}
+                      {thankYouAmounts[Object.keys(thankYouAmounts)[0]].receivedAmount || 0}
                     </div>
                   </div>
                 </div>
