@@ -3696,7 +3696,8 @@ const SalesStatisticOne = () => {
         <div
           className="p-4 rounded-4 text-center"
           style={{
-            background: "linear-gradient(160deg, #5a4a4a, #b93535)",
+            // background: "linear-gradient(160deg, #5a4a4a, #b93535)",
+            background:"#E53935",
             borderRadius: "20px",
           }}
         >
@@ -3716,7 +3717,7 @@ const SalesStatisticOne = () => {
             {member?.name}
           </h6>
 
-          <span className="text-white-50 d-block mb-3">
+          <span className="text-white d-block mb-3">
             {member?.roleName}
           </span>
 
