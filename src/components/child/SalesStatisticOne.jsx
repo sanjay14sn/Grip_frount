@@ -61,7 +61,7 @@ const SalesStatisticOne = () => {
   const [inputValue, setInputvalue] = useState(null);
   const [errors, setErrors] = useState({});
   const [referalError, setRefferalFormErrors] = useState({});
-  const [profilePercentage, setprofilePercentage] = useState(null);
+  const [profilePercentage, setprofilePercentage] = useState(100);
   const [profileLoading, setProfileLoading] = useState(true);
   const [headTableMembersData, setHeadTableMembersData] = useState([]);
 
@@ -270,7 +270,7 @@ const SalesStatisticOne = () => {
       const result = await loginApiProvider.profileCompletionPercentage(
         userData
       );
-      setprofilePercentage(result?.response?.data?.profileCompletion || 0);
+      setprofilePercentage(result?.response?.data?.profileCompletion!==100?100:result?.response?.data?.profileCompletion);
       console.log(result?.response?.data?.profileCompletion, "test33");
     } catch (error) {
       console.error("Error fetching profile completion:", error);
