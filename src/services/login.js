@@ -31,30 +31,59 @@ import apiClient from "../config";
 
 class LoginApiProvider {
   
+  // async login(input) {
+  //   try {
+  //     const response = await apiClient.post(`/member-login`, input);
+
+  //     if (response.status === 200 || response.status === 201) {
+  //       return { status: true, response: response.data };
+  //     } else {
+  //       console.error(
+  //         "Failed to fetch categories:",
+  //         response.data?.message ?? "Something went wrong"
+  //       );
+  //       return { status: false, response: response.data };
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching category:", error);
+
+  //     if (error.response && error.response.status === 401) {
+  //       console.error("Unauthorized access - check your token.");
+  //       console.error("Error Response:", error.response.data);
+  //     }
+
+  //     return { status: false, response: error.response?.data ?? null };
+  //   }
+  // }
+
   async login(input) {
-    try {
-      const response = await apiClient.post(`/member-login`, input);
+  try {
+    const response = await apiClient.post(`/member-login`, input);
 
-      if (response.status === 200 || response.status === 201) {
-        return { status: true, response: response.data };
-      } else {
-        console.error(
-          "Failed to fetch categories:",
-          response.data?.message ?? "Something went wrong"
-        );
-        return { status: false, response: response.data };
-      }
-    } catch (error) {
-      console.error("Error fetching category:", error);
+    return {
+      status: true,
+      response: response.data,
+    };
 
-      if (error.response && error.response.status === 401) {
-        console.error("Unauthorized access - check your token.");
-        console.error("Error Response:", error.response.data);
-      }
+  } catch (error) {
+    console.error("Login API Error:", error);
 
-      return { status: false, response: error.response?.data ?? null };
+    // If backend returned an error response
+    if (error.response) {
+      return {
+        status: false,
+        response: error.response.data, // <-- THIS RETURNS EXACT BACKEND ERROR
+      };
     }
+
+    // If network or unexpected error
+    return {
+      status: false,
+      response: { message: "Something went wrong", success: false },
+    };
   }
+}
+
 
   async registerForm(input) {
     try {

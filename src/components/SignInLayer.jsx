@@ -102,10 +102,12 @@ const SignInLayer = () => {
       if (response?.status) {
         const token = response?.response?.token;
         const userData = response?.response?.member;
-        
-        if (token && userData) {
+
           localStorage.setItem("userToken", token);
           localStorage.setItem("userData", JSON.stringify(userData));
+        
+        if (token && userData) {
+     
           toast.success('Login successful!', {
             onClose: () => {
              
@@ -115,15 +117,60 @@ const SignInLayer = () => {
           });
         }
       } else {
-        throw new Error(response?.message || "Login failed");
+        throw response;
       }
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error.response?.data?.message || error.message || 'Login failed');
+      toast.error(error?.response?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  
+  //   // Validate inputs
+  //   if (!/^\d{10}$/.test(formData.mobileNumber)) {
+  //     toast.error("Please enter a valid 10-digit mobile number");
+  //     return;
+  //   }
+  //   if (formData.pin.length !== 4) {
+  //     toast.error("PIN must be 4 digits");
+  //     return;
+  //   }
+  
+  //   setLoading(true);
+  
+  //   try {
+  //     const response = await loginApiProvider.login({
+  //       mobileNumber: formData.mobileNumber,
+  //       pin: formData.pin
+  //     });
+  
+  //     if (response?.status) {
+  //       const token = response?.response?.token;
+  //       const userData = response?.response?.member;
+        
+  //       if (token && userData) {
+  //         localStorage.setItem("userToken", token);
+  //         localStorage.setItem("userData", JSON.stringify(userData));
+  //         toast.success('Login successful!', {
+  //           onClose: () => {
+             
+  //             navigate('/dashboard', { replace: true });
+  //             window.location.reload();
+  //           }
+  //         });
+  //       }
+  //     } else {
+  //       throw new Error(response?.message || "Login failed");
+  //     }
+  //   } catch (error) {
+  //     console.error('Login error:', error);
+  //     toast.error(error.response?.data?.message || error.message || 'Login failed');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Auto-focus first pin input on mount
   useEffect(() => {
