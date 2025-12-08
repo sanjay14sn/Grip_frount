@@ -51,7 +51,7 @@ class ZoneApiProvider {
                 return { status: false, response: response.data }; // non-success HTTP status
             }
         } catch (error) {
-            console.error(`Error fetching members for chapter ${chapterId}:`, error);
+            console.error(`Error fetching associate for chapter ${chapterId}:`, error);
             return { status: false, response: error.response?.data ?? null };
         }
     }

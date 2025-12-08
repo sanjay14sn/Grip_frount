@@ -251,7 +251,7 @@ const SalesStatisticOne = () => {
       if (visitorRes?.success) setVisitorCounts(visitorRes.data);
       if (testimonialRes?.success) setTestimonialCounts(testimonialRes.data);
     } catch (error) {
-      console.error("Error fetching members and PALMS data:", error);
+      console.error("Error fetching associates and PALMS data:", error);
     }
   };
 
@@ -357,7 +357,7 @@ const SalesStatisticOne = () => {
   if (response?.status) {
     setHeadTableMembersData(response.response.data || []);
   } else {
-    console.error("Failed to fetch head table members");
+    console.error("Failed to fetch head table associates");
   }
 };
 
@@ -1985,7 +1985,7 @@ const SalesStatisticOne = () => {
                 lineHeight: "1.2",
               }}
             >
-              Member search
+              Associate search
             </Link>
 
             {/* GLOBAL SEARCH */}
@@ -2891,7 +2891,7 @@ const SalesStatisticOne = () => {
                       name="selectedMember"
                       onChange={(e) => setSelectedMember(e.target.value)}
                     >
-                      <option value="">Select a member</option>
+                      <option value="">Select a Associate</option>
                       {members &&
                         members.map((member) => (
                           <option key={member.id} value={member.id}>
@@ -3669,7 +3669,7 @@ const SalesStatisticOne = () => {
                       type="text"
                       name="search"
                       className="bg-white border-grip rounded-2 text-sm px-3 pe-5 h-100 w-100"
-                      placeholder="Member search..."
+                      placeholder="Associate search..."
                       onChange={(e) => memberInputChange(e.target.value)}
                       style={{ lineHeight: "1.1" }}
                     />
@@ -3908,7 +3908,7 @@ const SalesStatisticOne = () => {
             >
               <div className="d-flex align-items-center">
                 <p className="m-0 me-3">
-                  <strong>Running Member:</strong>{" "}
+                  <strong>Running Associate:</strong>{" "}
                   {selectedMember?.personalDetails?.firstName || "-"}{" "}
                   {selectedMember?.personalDetails?.lastName || "-"}
                 </p>
@@ -3953,8 +3953,8 @@ const SalesStatisticOne = () => {
                     <tr>
                       {[
                         "Date",
-                        "To Member",
-                        "From Member",
+                        "To Associate",
+                        "From Associate",
                         "Referral Name",
                         // "Category",
                         "Status",
@@ -4095,7 +4095,7 @@ const SalesStatisticOne = () => {
             >
               <div className="d-flex align-items-center">
                 <p className="m-0 me-3">
-                  <strong>Running Member:</strong>{" "}
+                  <strong>Running Associate:</strong>{" "}
                   {selectedMember?.personalDetails?.firstName || "-"}{" "}
                   {selectedMember?.personalDetails?.lastName || "-"}
                 </p>
@@ -4136,8 +4136,8 @@ const SalesStatisticOne = () => {
                     <tr>
                       {[
                         "Date",
-                        "To Member",
-                        "From Member",
+                        "To Associate",
+                        "From Associate",
                         "Referral Name",
                         // "Category",
                         "Status",
@@ -4275,7 +4275,7 @@ const SalesStatisticOne = () => {
               <div className="d-flex flex-column flex-sm-row gap-2 gap-md-3">
                 <div>
                   <p className="m-0 fw-bold">
-                    <strong>Running Member</strong> <br />
+                    <strong>Running Associate</strong> <br />
                     {selectedMember?.personalDetails?.firstName || "-"}{" "}
                     {selectedMember?.personalDetails?.lastName || "-"}
                   </p>
@@ -4319,8 +4319,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr>
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Photo</th>
                         <th>Comments</th>
                       </tr>
@@ -4454,7 +4454,7 @@ const SalesStatisticOne = () => {
               <div className="d-flex flex-column flex-sm-row gap-3 w-100 w-md-auto">
                 <div>
                   <p className="m-0">
-                    <strong>Running Member</strong> <br />
+                    <strong>Running Associate</strong> <br />
                     {selectedMember?.personalDetails?.firstName || "-"}{" "}
                     {selectedMember?.personalDetails?.lastName || "-"}
                   </p>
@@ -4502,8 +4502,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Photo</th>
                         <th>Comments</th>
                       </tr>
@@ -4799,7 +4799,7 @@ const SalesStatisticOne = () => {
                   <div className="reportdetailss overflow-x-auto">
                     <div className="bg-danger-100 p-3 rounded d-flex justify-content-between align-items-center mb-3">
                       <div>
-                        <strong>Selected Member:</strong>{" "}
+                        <strong>Selected Associate:</strong>{" "}
                         {selectedMember?.personalDetails?.firstName}{" "}
                         {selectedMember?.personalDetails?.lastName} | Chapter:{" "}
                         {selectedMember?.chapterInfo?.chapterId?.chapterName}
@@ -4976,7 +4976,7 @@ const SalesStatisticOne = () => {
                   <div className="reportdetailss overflow-x-auto">
                     <div className="bg-danger-100 p-3 rounded d-flex justify-content-between align-items-center mb-3">
                       <div>
-                        <strong>Selected Member:</strong>{" "}
+                        <strong>Selected Associate:</strong>{" "}
                         {selectedMember?.personalDetails?.firstName}{" "}
                         {selectedMember?.personalDetails?.lastName} | Chapter:{" "}
                         {selectedMember?.chapterInfo?.chapterId?.chapterName}
@@ -5193,7 +5193,7 @@ const SalesStatisticOne = () => {
                 <div className="reportdetailss overflow-x-auto mb-3">
                   <div className="bg-danger-100 p-3 rounded d-flex justify-content-between align-items-center mb-3">
                     <div>
-                      <strong>Ruuning Member: </strong>
+                      <strong>Ruuning Associate: </strong>
                       {selectedMember?.personalDetails
                         ? `${selectedMember.personalDetails.firstName || ""} ${selectedMember.personalDetails.lastName || ""
                         }`
@@ -5223,8 +5223,8 @@ const SalesStatisticOne = () => {
                       <thead className="table-danger grip">
                         <tr className="text-xs">
                           <th>Date</th>
-                          <th>To Member</th>
-                          <th>From Member</th>
+                          <th>To Associate</th>
+                          <th>From Associate</th>
                           <th>Meeting Location</th>
                           <th>Photo</th>
                           <th>Address</th>
@@ -5494,7 +5494,7 @@ const SalesStatisticOne = () => {
                       type="text"
                       name="search"
                       className="bg-white border-grip rounded-2 text-sm px-3 pe-5 h-100 w-100"
-                      placeholder="Member search..."
+                      placeholder="Associate search..."
                       onChange={(e) => {
                         globalSearch(e.target.value);
                       }}
@@ -5621,7 +5621,7 @@ const SalesStatisticOne = () => {
             <div className="modal-content radius-16 bg-base">
               <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
                 <h1 className="modal-title fs-5" id="memberSearchModal">
-                  Member Details
+                  Associate Details
                 </h1>
                 <button
                   type="button"
@@ -5749,7 +5749,7 @@ const SalesStatisticOne = () => {
                       onChange={(e) => setSelectedMember(e.target.value)}
                       required
                     >
-                      <option value="">Select a member</option>
+                      <option value="">Select a Associate</option>
                       {members &&
                         members.map((member) => (
                           <option key={member.id} value={member.id}>
@@ -5796,7 +5796,7 @@ const SalesStatisticOne = () => {
                     {selectedChapter && (
                       <div className="row mb-24 gy-3 align-items-center">
                         <label className="form-label mb-0 col-sm-3">
-                          Select Member<span className="text-danger">*</span>
+                          Select Associate<span className="text-danger">*</span>
                         </label>
                         <div className="col-sm-9">
                           <select
@@ -5943,7 +5943,7 @@ const SalesStatisticOne = () => {
                       name="selectedMember"
                       onChange={(e) => setSelectedMember(e.target.value)}
                     >
-                      <option value="">Select a member</option>
+                      <option value="">Select a Associate</option>
                       {members &&
                         members.map((member) => (
                           <option key={member.id} value={member.id}>
@@ -6005,7 +6005,7 @@ const SalesStatisticOne = () => {
                     {selectedChapter && (
                       <div className="row mb-24 gy-3 align-items-center">
                         <label className="form-label mb-0 col-sm-3">
-                          Select Member<span className="text-danger">*</span>
+                          Select Associate<span className="text-danger">*</span>
                         </label>
                         <div className="col-sm-9">
                           <select
@@ -6272,7 +6272,7 @@ const SalesStatisticOne = () => {
                       name="selectedMember"
                       onChange={(e) => setSelectedMember(e.target.value)}
                     >
-                      <option value="">Select a member</option>
+                      <option value="">Select a Associate</option>
                       {members &&
                         members.map((member) => (
                           <option key={member.id} value={member.id}>
@@ -6319,7 +6319,7 @@ const SalesStatisticOne = () => {
                     {selectedChapter && (
                       <div className="row mb-24 gy-3 align-items-center">
                         <label className="form-label mb-0 col-sm-3">
-                          Select Member<span className="text-danger">*</span>
+                          Select Associate<span className="text-danger">*</span>
                         </label>
                         <div className="col-sm-9">
                           <select
@@ -7748,8 +7748,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Meeting Location</th>
                         <th>Photo</th>
                         <th>Address</th>
@@ -7945,8 +7945,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Photo</th>
                         <th>Comments</th>
                         {/* <th>Created At</th> */}
@@ -8109,8 +8109,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Referral Name</th>
                         {/* <th>Category</th> */}
                         <th>Status</th>
@@ -8274,8 +8274,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Photo</th>
                         <th>Comments</th>
                         {/* <th>Created At</th> */}
@@ -8445,8 +8445,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Referral Name</th>
                         <th>Referral Status</th>
                         {/* <th>Category</th>   */}
@@ -8991,8 +8991,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Amount</th>
                         <th>Comments</th>
                         {/* <th>Created At</th> */}
@@ -9150,8 +9150,8 @@ const SalesStatisticOne = () => {
                     <thead className="table-danger grip">
                       <tr className="text-xs">
                         <th>Date</th>
-                        <th>To Member</th>
-                        <th>From Member</th>
+                        <th>To Associate</th>
+                        <th>From Associate</th>
                         <th>Amount</th>
                         <th>Comments</th>
                       </tr>

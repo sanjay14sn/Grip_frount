@@ -382,7 +382,8 @@ const SignUpLayer = () => {
               <Link to='/' className='mb-20 max-w-150-px'>
                 <img src='assets/images/logo.png' alt='' />
               </Link>
-              <h4 className='mb-40 associate-title'>Associate Membership Application</h4>
+              {/* <h4 className='mb-40 associate-title'>Associate Membership Application</h4> */}
+              <h4 className='mb-40 associate-title'>Associate Application</h4>
             </div>
 
             <div className='card'>
