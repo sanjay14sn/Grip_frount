@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import ZoneApiProvider from "../services/visitorApi";
 import Swal from "sweetalert2";
 import '../App.css';
 
-
-
 export default function VisitorsForm() {
+    const { zoneName, chapterName } = useParams();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         zone: "",
         zoneId: "",
         chapter: "",
-        invitedBy: "",        // <-- NEW FIELD ADDED HERE
+        invitedBy: "",
         chapterId: "",
         invited_from: "",
         invited_by_member: "",
@@ -29,7 +30,10 @@ export default function VisitorsForm() {
     const [zones, setZones] = useState([]);
     const [chapters, setChapters] = useState([]);
     const [members, setMembers] = useState([]);
-    const [cids, setCids] = useState([]);
+    const [eds, setEds] = useState([]);
+
+    const [rdUsers, setRdUsers] = useState([]);
+    const [mentorUsers, setMentorUsers] = useState([]);
     const [showSuccess, setShowSuccess] = useState(false);
     const [errors, setErrors] = useState({});
 
@@ -57,7 +61,30 @@ export default function VisitorsForm() {
             try {
                 const response = await ZoneApiProvider.getPublicZones();
                 if (response.status && response.response.success) {
-                    setZones(response.response.data);
+                    const fetchedZones = response.response.data;
+                    setZones(fetchedZones);
+
+                    if (zoneName) {
+                        const formattedUrlZone = zoneName.toLowerCase().replace(/\s+/g, '');
+                        const matchingZone = fetchedZones.find(z => z.zoneName.toLowerCase().replace(/\s+/g, '') === formattedUrlZone);
+
+                        if (matchingZone) {
+                            setFormData(prev => ({
+                                ...prev,
+                                zone: matchingZone.zoneName,
+                                zoneId: matchingZone._id
+                            }));
+                        } else {
+                            // Invalid zone in URL
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Zone Link',
+                                text: 'The zone link you followed is invalid.'
+                            }).then(() => {
+                                navigate('/');
+                            });
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch zones:", error);
@@ -77,7 +104,30 @@ export default function VisitorsForm() {
             try {
                 const response = await ZoneApiProvider.getChaptersByZonePublic(formData.zoneId);
                 if (response.status && response.response.success) {
-                    setChapters(response.response.data);
+                    const fetchedChapters = response.response.data;
+                    setChapters(fetchedChapters);
+
+                    if (chapterName) {
+                        const formattedUrlChapter = chapterName.toLowerCase().replace(/\s+/g, '');
+                        const matchingChapter = fetchedChapters.find(c => c.chapterName.toLowerCase().replace(/\s+/g, '') === formattedUrlChapter);
+
+                        if (matchingChapter) {
+                            setFormData(prev => ({
+                                ...prev,
+                                chapter: matchingChapter.chapterName,
+                                chapterId: matchingChapter._id
+                            }));
+                        } else {
+                            // Invalid chapter in URL
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Chapter Link',
+                                text: 'The chapter link you followed is invalid.'
+                            }).then(() => {
+                                navigate(zoneName ? `/visitors/${zoneName}` : '/');
+                            });
+                        }
+                    }
                 } else {
                     setChapters([]);
                 }
@@ -87,7 +137,7 @@ export default function VisitorsForm() {
             }
         }
         fetchChapters();
-    }, [formData.zoneId]);
+    }, [formData.zoneId, chapterName, navigate, zoneName]);
 
     // Fetch members when chapter changes
     useEffect(() => {
@@ -111,26 +161,68 @@ export default function VisitorsForm() {
         fetchMembers();
     }, [formData.chapterId]);
 
-    // Fetch all CIDs
+    // Fetch all CIDs, GRIP users, RD users, Mentors
     useEffect(() => {
-        fetchCids();
+        fetchEds();
+
+        fetchRdUsers();
+        fetchMentors();
     }, []);
 
-    async function fetchCids() {
+    async function fetchEds() {
         try {
-            const response = await ZoneApiProvider.getUsersByRole({ role: "CID" });
+            const response = await ZoneApiProvider.getUsersByRole({ role: "ED" });
             if (response.status && response.response?.data) {
-                const cidOptions = response.response.data.map((user) => ({
+                const edOptions = response.response.data.map((user) => ({
+                    value: user._id,
+                    label: user.name,
+                    zoneId: user.zoneId
+                }));
+                setEds(edOptions);
+            } else {
+                setEds([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch EDs:", error);
+            setEds([]);
+        }
+    }
+
+
+
+    async function fetchRdUsers() {
+        try {
+            const response = await ZoneApiProvider.getUsersByRole({ role: "RD" });
+            if (response.status && response.response?.data) {
+                const rdOptions = response.response.data.map((user) => ({
                     value: user._id,
                     label: user.name,
                 }));
-                setCids(cidOptions);
+                setRdUsers(rdOptions);
             } else {
-                setCids([]);
+                setRdUsers([]);
             }
         } catch (error) {
-            console.error("Failed to fetch CIDs:", error);
-            setCids([]);
+            console.error("Failed to fetch RD users:", error);
+            setRdUsers([]);
+        }
+    }
+
+    async function fetchMentors() {
+        try {
+            const response = await ZoneApiProvider.getUsersByRole({ role: "Mentor" });
+            if (response.status && response.response?.data) {
+                const mentorOptions = response.response.data.map((user) => ({
+                    value: user._id,
+                    label: user.name,
+                }));
+                setMentorUsers(mentorOptions);
+            } else {
+                setMentorUsers([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch Mentors:", error);
+            setMentorUsers([]);
         }
     }
 
@@ -151,29 +243,30 @@ export default function VisitorsForm() {
         const { name, value } = e.target;
 
         if (name === "invited_from") {
-            const SPECIAL_VALUES = ["FED", "GRIP", "MENTOR", "RD"];
-            const value = e.target.value;
-
-            // CASE 1: FED / GRIP / MENTOR / RD
-            if (SPECIAL_VALUES.includes(value)) {
-                setFormData(prev => ({
-                    ...prev,
-                    invited_from: value,
-                    invitedBy: ""   // ← DO NOT SET invitedBy for special values
-                }));
-                return;
-            }
-
-            // CASE 2: Member selected → match by firstName
-            const selected = members.find(
-                m => m.personalDetails?.firstName === value
-            );
-
             setFormData(prev => ({
                 ...prev,
-                invited_from: value,                 // store the NAME shown in dropdown
-                invitedBy: selected ? selected._id : ""   // store MEMBER ID only
+                invited_from: value,
+                invited_by_member: value === "GRIP" ? "GRIP" : "",
+                invitedBy: ""
             }));
+            return;
+        }
+
+        if (name === "invited_by_member") {
+            if (formData.invited_from === "Associate") {
+                const selectedMember = members.find(m => m._id === value);
+                setFormData(prev => ({
+                    ...prev,
+                    invited_by_member: selectedMember ? `${selectedMember.personalDetails?.firstName || ""} ${selectedMember.personalDetails?.lastName || ""}`.trim() : "",
+                    invitedBy: selectedMember ? selectedMember._id : ""
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    invited_by_member: value,
+                    invitedBy: ""
+                }));
+            }
             return;
         }
 
@@ -295,6 +388,7 @@ export default function VisitorsForm() {
                     chapterId: "",
                     invited_from: "",
                     invited_by_member: "",
+                    invitedBy: "",
                     chapter_directory_name: "",
                 });
                 setErrors({});
@@ -322,28 +416,36 @@ export default function VisitorsForm() {
             )}
 
             <div className="visitors-logo">
-                <img src="logo.png" alt="GRIP Logo" />
+                <img src="/logo.png" alt="GRIP Logo" />
             </div>
 
-            <h2 className="visitors-title">Visitor Form</h2>
+            <h2 className="visitors-title">
+                {formData.zone
+                    ? `${formData.zone}${formData.chapter ? ` ( ${formData.chapter} )` : ""} Visitor Form`
+                    : zoneName
+                        ? `${zoneName.charAt(0).toUpperCase() + zoneName.slice(1)}${chapterName ? ` ( ${chapterName.charAt(0).toUpperCase() + chapterName.slice(1)} )` : ""} Visitor Form`
+                        : "Visitor Form"}
+            </h2>
 
             <form id="visitors-form" onSubmit={handleSubmit}>
                 <fieldset className="visitors-fieldset">
                     <div className="visitors-form-row">
                         {/* --- Zone --- */}
-                        <div className="visitors-form-group">
-                            <label>
-                                Zone <span className="visitors-required">*</span>
-                            </label>
-                            <select name="zone" value={formData.zone} onChange={handleChange}>
-                                <option value="">-- Select Zone --</option>
-                                {zones.map((zone) => (
-                                    <option key={zone._id} value={zone.zoneName}>
-                                        {zone.zoneName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {!zoneName && (
+                            <div className="visitors-form-group">
+                                <label>
+                                    Zone <span className="visitors-required">*</span>
+                                </label>
+                                <select name="zone" value={formData.zone} onChange={handleChange}>
+                                    <option value="">-- Select Zone --</option>
+                                    {zones.map((zone) => (
+                                        <option key={zone._id} value={zone.zoneName}>
+                                            {zone.zoneName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         {/* --- Chapters --- */}
                         <div className="visitors-form-group">
@@ -354,7 +456,7 @@ export default function VisitorsForm() {
                                 name="chapter"
                                 value={formData.chapter}
                                 onChange={handleChange}
-                                disabled={!formData.zoneId}
+                                disabled={!formData.zoneId || !!chapterName}
                             >
                                 <option value="">-- Select Chapter --</option>
                                 {chapters.map((chapter) => (
@@ -376,39 +478,72 @@ export default function VisitorsForm() {
                                 onChange={handleChange}
                                 disabled={!formData.chapterId}
                             >
-                                <option value="">-- Select Associate --</option>
-                                {members.map((member) => (
-                                    <option key={member._id} value={member.personalDetails?.firstName || member._id}>
-                                        {member.personalDetails?.firstName || member._id}
-                                    </option>
-                                ))}
-                                <option value="FED">FED</option>
-                                <option value="GRIP">GRIP</option>
-                                <option value="MENTOR">MENTOR</option>
+                                <option value="">-- Select Invite Source --</option>
+                                <option value="Associate">Associate</option>
+                                <option value="ED">ED</option>
                                 <option value="RD">RD</option>
+                                <option value="Mentor">Mentor</option>
+                                <option value="GRIP">GRIP</option>
                             </select>
                         </div>
 
-                        {/* --- Who Invited (FED) --- */}
-                        <div className="visitors-form-group">
-                            <label>
-                                Who Invited - FED <span className="visitors-required">*</span>
-                            </label>
-                            <select
-                                name="invited_by_member"
-                                value={formData.invited_by_member}
-                                onChange={handleChange}
-                                disabled={formData.invited_from !== "FED"}
-                                required={formData.invited_from === "FED"}
-                            >
-                                <option value="">-- Select FED Member --</option>
-                                {cids.map((cid) => (
-                                    <option key={cid.value} value={cid.label}>
-                                        {cid.label}
+                        {/* --- Who Invited (ED) --- */}
+                        {formData.invited_from !== "GRIP" && (
+                            <div className="visitors-form-group">
+                                <label>
+                                    {formData.invited_from ? `Who Invited - ${formData.invited_from} name` : "Who Invited"} <span className="visitors-required">*</span>
+                                </label>
+                                <select
+                                    name="invited_by_member"
+                                    value={formData.invited_from === "Associate" ? formData.invitedBy : formData.invited_by_member}
+                                    onChange={handleChange}
+                                    disabled={!formData.invited_from}
+                                    required
+                                >
+                                    <option value="">
+                                        {formData.invited_from ? `-- Select ${formData.invited_from} Member --` : "-- Select Type First --"}
                                     </option>
-                                ))}
-                            </select>
-                        </div>
+                                    {formData.invited_from === "Associate" &&
+                                        members.map((member) => {
+                                            const fullName = `${member.personalDetails?.firstName || ""} ${member.personalDetails?.lastName || ""}`.trim() || member._id;
+                                            return (
+                                                <option key={member._id} value={member._id}>
+                                                    {fullName}
+                                                </option>
+                                            );
+                                        })
+                                    }
+                                    {formData.invited_from === "ED" &&
+                                        eds
+                                            .filter(user => user.zoneId === formData.zoneId)
+                                            .map((ed) => (
+                                                <option key={ed.value} value={ed.label}>
+                                                    {ed.label}
+                                                </option>
+                                            ))
+                                    }
+                                    {formData.invited_from === "RD" &&
+                                        rdUsers.map((user) => (
+                                            <option key={user.value} value={user.label}>
+                                                {user.label}
+                                            </option>
+                                        ))
+                                    }
+                                    {formData.invited_from === "Mentor" &&
+                                        mentorUsers
+                                            .filter(user => {
+                                                const selectedChapter = chapters.find(c => c._id === formData.chapterId);
+                                                return selectedChapter?.mentorId?.includes(user.value);
+                                            })
+                                            .map((user) => (
+                                                <option key={user.value} value={user.label}>
+                                                    {user.label}
+                                                </option>
+                                            ))
+                                    }
+                                </select>
+                            </div>
+                        )}
 
                         {/* Name */}
                         <div className="visitors-form-group">
@@ -516,25 +651,7 @@ export default function VisitorsForm() {
                             )}
                         </div>
 
-                        {/* --- CID --- */}
-                        <div className="visitors-form-group">
-                            <label>
-                                Chapter Induction Directors (CID) <span className="visitors-required">*</span>
-                            </label>
-                            <select
-                                name="chapter_directory_name"
-                                value={formData.chapter_directory_name}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">-- Select Name --</option>
-                                {cids.map((cid) => (
-                                    <option key={cid.value} value={cid.label}>
-                                        {cid.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+
                     </div>
                 </fieldset>
 

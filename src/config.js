@@ -22,7 +22,7 @@ import axios from "axios";
 
 export const IMAGE_BASE_URL = "http://localhost:4002/api/public";
 export const BASE_URL = "http://localhost:4002/api/mobile";
-export const server = "http://localhost:4002/"
+export const server = "http://localhost:4002"
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

@@ -120,7 +120,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/sign-in" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignInPage />} />
         <Route path="/sign-up" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignUpPage />} />
-        <Route path="/visitors" element={<VisitorsForm />} />
+        <Route path="/visitors/:zoneName/:chapterName" element={<VisitorsForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Protected Routes */}
