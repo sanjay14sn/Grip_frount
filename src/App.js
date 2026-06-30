@@ -123,6 +123,7 @@ function App() {
         <Route path="/sign-up" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignUpPage />} />
         <Route path="/visitors/:zoneName/:chapterName" element={<VisitorsForm />} />
         <Route path="/associate-application/:zoneName" element={<AssociateApplicationForm />} />
+        <Route path="/AssociateApplicationForm/:zoneName" element={<AssociateApplicationForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Protected Routes */}
