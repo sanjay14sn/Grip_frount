@@ -307,10 +307,17 @@ export default function AssociateApplicationForm() {
                         {formData.invited_from !== "GRIP" && (
                             <div className="visitors-form-group">
                                 <label>
-                                    {formData.invited_from ? `Who Invited - ${formData.invited_from} name` : "Who Invited"} <span className="visitors-required">*</span>
+                                    {formData.invited_from ? `Who Invited - ${formData.invited_from} name` : "Who Invited"} 
+                                    {(!["ED", "RD"].includes(formData.invited_from)) && <span className="visitors-required">*</span>}
                                 </label>
-                                <select name="invited_by_member" value={formData.invited_from === "Associate" ? formData.invitedBy : formData.invited_by_member} onChange={handleChange} disabled={!formData.invited_from} required>
-                                    <option value="">{formData.invited_from ? `-- Select ${formData.invited_from} Member --` : "-- Select Type First --"}</option>
+                                <select 
+                                    name="invited_by_member" 
+                                    value={formData.invited_from === "Associate" ? formData.invitedBy : formData.invited_by_member} 
+                                    onChange={handleChange} 
+                                    disabled={!formData.invited_from} 
+                                    required={!["ED", "RD"].includes(formData.invited_from)}
+                                >
+                                    <option value="">{formData.invited_from ? `-- Select ${formData.invited_from} ${formData.invited_from === "Associate" ? "Member" : "Name"} --` : "-- Select Type First --"}</option>
                                     {formData.invited_from === "Associate" && members.map(member => (
                                         <option key={member._id} value={member._id}>
                                             {`${member.personalDetails?.firstName || ""} ${member.personalDetails?.lastName || ""}`.trim() || member._id}
