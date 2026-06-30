@@ -96,6 +96,33 @@ class ZoneApiProvider {
         }
     }
 
+    async submitAssociateApplication(input) {
+        try {
+            let data = input;
+            
+            // Convert to FormData to handle file uploads
+            if (input.aadharCard && typeof input.aadharCard === 'object') {
+                data = new FormData();
+                for (const key in input) {
+                    if (input[key] !== null && input[key] !== undefined) {
+                        data.append(key, input[key]);
+                    }
+                }
+            }
+
+            const response = await apiClient.post(`/public/associate-application`, data);
+
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            } else {
+                return { status: false, response: response.data };
+            }
+        } catch (error) {
+            return { status: false, response: error.response?.data ?? null };
+        }
+    }
+
+
 
 }
 
