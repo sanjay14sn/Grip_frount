@@ -121,7 +121,21 @@ export default function AssociateApplicationForm() {
         if (type === "checkbox") {
             setFormData(prev => ({ ...prev, [name]: checked }));
         } else if (type === "file") {
-            setFormData(prev => ({ ...prev, [name]: files[0] }));
+            const file = files[0];
+            if (file) {
+                const maxSize = 2 * 1024 * 1024; // 2MB
+                if (file.size > maxSize) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Too Large',
+                        text: 'The selected file is larger than 2MB. Please choose a smaller image or PDF.',
+                    });
+                    e.target.value = ''; // clear the input
+                    setFormData(prev => ({ ...prev, [name]: null }));
+                    return;
+                }
+                setFormData(prev => ({ ...prev, [name]: file }));
+            }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -140,7 +154,7 @@ export default function AssociateApplicationForm() {
                     title: 'Success!',
                     text: 'Form Submitted Successfully!',
                 }).then(() => {
-                    navigate('/');
+                    window.location.reload();
                 });
             } else {
                 Swal.fire({
