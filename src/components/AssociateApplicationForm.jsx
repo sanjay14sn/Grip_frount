@@ -4,6 +4,14 @@ import ZoneApiProvider from "../services/visitorApi";
 import Swal from "sweetalert2";
 import '../App.css';
 
+const getMemberDisplayName = (member) =>
+    `${member.personalDetails?.firstName || ""} ${member.personalDetails?.lastName || ""}`.trim() || member._id;
+
+const sortMembersByName = (membersList) =>
+    [...membersList].sort((a, b) =>
+        getMemberDisplayName(a).localeCompare(getMemberDisplayName(b), undefined, { sensitivity: "base" })
+    );
+
 export default function AssociateApplicationForm() {
     const { zoneName } = useParams();
     const navigate = useNavigate();
@@ -243,7 +251,7 @@ export default function AssociateApplicationForm() {
             try {
                 const response = await ZoneApiProvider.getMembersByChapterIdPublic(formData.chapterId);
                 if (response.status && response.response.success) {
-                    setMembers(response.response.data);
+                    setMembers(sortMembersByName(response.response.data));
                 } else {
                     setMembers([]);
                 }
@@ -334,7 +342,7 @@ export default function AssociateApplicationForm() {
                                     <option value="">{formData.invited_from ? `-- Select ${formData.invited_from} ${formData.invited_from === "Associate" ? "Member" : "Name"} --` : "-- Select Type First --"}</option>
                                     {formData.invited_from === "Associate" && members.map(member => (
                                         <option key={member._id} value={member._id}>
-                                            {`${member.personalDetails?.firstName || ""} ${member.personalDetails?.lastName || ""}`.trim() || member._id}
+                                            {getMemberDisplayName(member)}
                                         </option>
                                     ))}
                                     {formData.invited_from === "ED" && eds.filter(user => user.zoneId === formData.zoneId).map(ed => (

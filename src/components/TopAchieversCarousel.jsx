@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-const IMAGE_BASE_URL = "https://api.gripforum.com/api/public/";
+import { IMAGE_BASE_URL } from "../config";
 
 const getImage = (img) => {
   if (!img) return null;

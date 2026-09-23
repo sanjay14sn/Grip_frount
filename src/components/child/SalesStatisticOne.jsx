@@ -10,7 +10,7 @@ import formApiProvider from "../../services/formApi";
 import loginApiProvider from "../../services/login";
 import registerApiProvider from "../../services/register";
 import topAchiverApi from "../../services/topAchiverApi";
-import { IMAGE_BASE_URL } from "../../config";
+import { IMAGE_BASE_URL, BASE_URL } from "../../config";
 import { toast, ToastContainer } from "react-toastify";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import AchieverCarousel from "../../components/TopAchieversCarousel";
@@ -1285,7 +1285,7 @@ const SalesStatisticOne = () => {
     try {
       // Login
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1301,7 +1301,7 @@ const SalesStatisticOne = () => {
 
       // Fetch referrals
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/referralslip/given/list/${memberId}`,
+        `${BASE_URL}/referralslip/given/list/${memberId}`,
         {
           method: "GET",
           headers: {
@@ -1340,7 +1340,7 @@ const SalesStatisticOne = () => {
     try {
       // Login (same as given)
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1354,7 +1354,7 @@ const SalesStatisticOne = () => {
 
       // Fetch referrals RECEIVED
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/referralslip/received/list/${memberId}`,
+        `${BASE_URL}/referralslip/received/list/${memberId}`,
         {
           method: "GET",
           headers: {
@@ -1558,7 +1558,7 @@ const SalesStatisticOne = () => {
 
     try {
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1571,7 +1571,7 @@ const SalesStatisticOne = () => {
       if (!token) throw new Error("Login failed");
 
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/testimonialslips/given/list/${member._id}`,
+        `${BASE_URL}/testimonialslips/given/list/${member._id}`,
         {
           method: "GET",
           headers: {
@@ -1611,7 +1611,7 @@ const SalesStatisticOne = () => {
     try {
       // Login to get token
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1625,7 +1625,7 @@ const SalesStatisticOne = () => {
 
       // Fetch received testimonials
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/testimonialslips/received/list/${member._id}`,
+        `${BASE_URL}/testimonialslips/received/list/${member._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1651,7 +1651,7 @@ const SalesStatisticOne = () => {
     try {
       // 1. Login to get token
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1668,7 +1668,7 @@ const SalesStatisticOne = () => {
 
       // 2. Fetch visitors of this member
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/visitors/list/${member._id}`,
+        `${BASE_URL}/visitors/list/${member._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1695,7 +1695,7 @@ const SalesStatisticOne = () => {
     try {
       // 1. Login
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1712,8 +1712,7 @@ const SalesStatisticOne = () => {
 
       // 2. Fetch expected visitors of this member
       const res = await fetch(
-        // `https://api.gripforum.com/api/mobile/expectedVisitors/list/${member._id}`,
-        `http://localhost:4002/api/mobile/expectedVisitors/list/${member._id} `,
+        `${BASE_URL}/expectedVisitors/list/${member._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1740,7 +1739,7 @@ const SalesStatisticOne = () => {
     try {
       // 1. Login to get token
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1757,7 +1756,7 @@ const SalesStatisticOne = () => {
 
       // 2. Fetch thank you slips given by this member
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/thankyouslips/given/list/${member._id}`,
+        `${BASE_URL}/thankyouslips/given/list/${member._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1781,7 +1780,7 @@ const SalesStatisticOne = () => {
     try {
       // 1. Login
       const loginRes = await fetch(
-        "https://api.gripforum.com/api/mobile/member-login",
+        `${BASE_URL}/member-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1798,7 +1797,7 @@ const SalesStatisticOne = () => {
 
       // 2. Fetch one-to-one data
       const res = await fetch(
-        `https://api.gripforum.com/api/mobile/onetoone/list/${member._id}`,
+        `${BASE_URL}/onetoone/list/${member._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

@@ -96,6 +96,29 @@ class ZoneApiProvider {
         }
     }
 
+    async submitVisitorFeedback(input) {
+        try {
+            const response = await apiClient.post(`/visitor-feedback`, input);
+
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            } else {
+                // Fallback to visitors endpoint if feedback endpoint returns issue
+                const altResponse = await apiClient.post(`/visitors`, input);
+                return { status: altResponse.status === 200 || altResponse.status === 201, response: altResponse.data };
+            }
+        } catch (error) {
+            try {
+                // Fallback submission
+                const altResponse = await apiClient.post(`/visitors`, input);
+                return { status: altResponse.status === 200 || altResponse.status === 201, response: altResponse.data };
+            } catch (err) {
+                return { status: false, response: error.response?.data ?? null };
+            }
+        }
+    }
+
+
     async submitAssociateApplication(input) {
         try {
             let data = input;

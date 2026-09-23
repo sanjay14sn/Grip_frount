@@ -16,7 +16,11 @@
 }
 
 .visitors-logo img {
-  height: 80px;
+  height: auto;
+  max-height: 90px;
+  max-width: 280px;
+  width: auto;
+  object-fit: contain;
 }
 
 .visitors-title {
@@ -229,4 +233,31 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Visitor Feedback Form Custom Styling */
+.visitor-feedback-container {
+    border-top: 5px solid #d42c20;
+}
+
+.visitor-feedback-container .visitors-title {
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 1rem !important;
+}
+
+
+.feedback-legend {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    padding: 0 10px;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
 }
